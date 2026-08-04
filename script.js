@@ -387,14 +387,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let targetLane = 0; // -1: Left, 0: Center, 1: Right
     let playerX3D = 0;
 
-    let gateSpeed = 10.0;
+    let gateSpeed = 6.5;
     let gates = []; // Active 3D Wall Gates
     let gateSpawnTimer = 0;
 
     // Gate Generator (Single-Slot or Double-Slot Openings)
     function spawnGate() {
       // Choose opening type: 60% Single-Slot Open, 40% Double-Slot Open
-      const isDoubleSlot = Math.random() < 0.4;
+      const isDoubleSlot = Math.random() < 0.45;
       let slots = [true, true, true]; // true = solid wall, false = open pass-through slot
 
       if (isDoubleSlot) {
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       gates.push({
-        z: 900,
+        z: 1100, // Spawn far away near horizon for generous reaction time
         slots: slots,
         isDouble: isDoubleSlot,
         cleared: false
@@ -428,12 +428,12 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsRunning = true;
       roadsOver = false;
       roadsScore = 0;
-      gateSpeed = 10.0;
+      gateSpeed = 6.5;
       targetLane = 0;
       playerX3D = 0;
       gates = [];
       gateSpawnTimer = 0;
-      // Initial gates
+      // Initial gate
       spawnGate();
       overlay.classList.add('hidden');
     }
@@ -461,15 +461,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRoads() {
-      // Speed & Score Progression
-      gateSpeed = 10.0 + Math.min(10.0, roadsScore / 400);
+      // Speed & Score Progression (Gentle curve)
+      gateSpeed = 6.5 + Math.min(6.0, roadsScore / 1000);
 
-      // Smooth 3D Lane Transition
-      playerX3D += (targetLane * 140 - playerX3D) * 0.30;
+      // Snappy 3D Lane Transition
+      playerX3D += (targetLane * 140 - playerX3D) * 0.38;
 
-      // Spawn new gates periodically
+      // Spawn new gates with generous distance (Interval > 550)
       gateSpawnTimer += gateSpeed;
-      if (gateSpawnTimer > 280) {
+      if (gateSpawnTimer > 550) {
         gateSpawnTimer = 0;
         spawnGate();
       }
