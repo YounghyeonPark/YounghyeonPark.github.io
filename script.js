@@ -453,7 +453,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Quantum Superposition Wave Bonus State
     let superpositionCharges = 0;
-    let nextSuperpositionScore = 3000;
+    let clearedGateCount = 0;
+    let lastBonusGateCount = 0;
     let waveNotifyTimer = 0;
     let waveExplosionTimer = 0;
 
@@ -494,13 +495,14 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsRunning = true;
       roadsOver = false;
       roadsScore = 0;
+      clearedGateCount = 0;
+      lastBonusGateCount = 0;
       gateSpeed = 7.0;
       targetLane = 0;
       playerX3D = 0;
       gates = [];
       gateSpawnTimer = 0;
       superpositionCharges = 0;
-      nextSuperpositionScore = 500;
       waveNotifyTimer = 0;
       waveExplosionTimer = 0;
       // Initial gate
@@ -532,14 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateRoads() {
       // 3x Faster Speed Acceleration Progression
-      gateSpeed = 7.0 + Math.min(15.0, (roadsScore / 100) * 0.45);
-
-      // Check Quantum Superposition Wave Bonus (Every 500 Score / 5 Gates)
-      if (roadsScore >= nextSuperpositionScore) {
-        superpositionCharges++;
-        nextSuperpositionScore += 500;
-        waveNotifyTimer = 90; // ~1.5s banner notification
-      }
+      gateSpeed = 7.0 + Math.min(15.0, (clearedGateCount * 0.45));
 
       // Dynamic responsive slot spacing for mobile vs desktop
       const playerZ = 120;
@@ -580,7 +575,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
               });
 
-              roadsScore += 100;
+              clearedGateCount++;
+              roadsScore = clearedGateCount * 100;
+
+              // Grant 1 Superposition Wave Bonus every 5 cleared gates
+              if (clearedGateCount - lastBonusGateCount >= 5) {
+                superpositionCharges++;
+                lastBonusGateCount = clearedGateCount;
+                waveNotifyTimer = 90;
+              }
+
               if (roadsScore > roadsHighScore) {
                 roadsHighScore = roadsScore;
                 localStorage.setItem('slotgate_high_score', roadsHighScore);
@@ -593,7 +597,16 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             // Successfully Passed Slot Gate!
             gate.cleared = true;
-            roadsScore += 100;
+            clearedGateCount++;
+            roadsScore = clearedGateCount * 100;
+
+            // Grant 1 Superposition Wave Bonus every 5 cleared gates
+            if (clearedGateCount - lastBonusGateCount >= 5) {
+              superpositionCharges++;
+              lastBonusGateCount = clearedGateCount;
+              waveNotifyTimer = 90;
+            }
+
             if (roadsScore > roadsHighScore) {
               roadsHighScore = roadsScore;
               localStorage.setItem('slotgate_high_score', roadsHighScore);
