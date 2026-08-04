@@ -956,9 +956,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ------------------------------------------------------------------------
-    // Global Online Leaderboard System (REST API + LocalStorage + 4-Way Close)
+    // Global Online Leaderboard System (Fresh Reset Data & Storage)
     // ------------------------------------------------------------------------
-    const KVDB_ENDPOINT = 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_arcade_leaderboard';
+    const KVDB_ENDPOINT = 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_leaderboard_v2';
 
     const leaderboardBtn = document.getElementById('leaderboard-toggle-btn');
     const leaderboardModal = document.getElementById('leaderboard-modal');
@@ -968,15 +968,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const nicknameInput = document.getElementById('nickname-input');
     const submitScoreBtn = document.getElementById('submit-score-btn');
 
-    let cachedLeaderboard = JSON.parse(localStorage.getItem('yp_cached_leaderboard') || '[]');
+    // Wipe old cached key if present
+    localStorage.removeItem('yp_cached_leaderboard');
+
+    let cachedLeaderboard = JSON.parse(localStorage.getItem('yp_leaderboard_v2') || '[]');
 
     if (cachedLeaderboard.length === 0) {
       cachedLeaderboard = [
-        { name: 'Dr. Park 🔬', score: 15400, game: 'Photon Runner' },
-        { name: 'OpticsLab 🚀', score: 12800, game: 'Slot Gate 3D' },
-        { name: 'QuantumPro', score: 9600, game: 'Photon Runner' },
-        { name: 'PhotonMaster', score: 8200, game: 'Slot Gate 3D' },
-        { name: 'CuriBio', score: 6500, game: 'Photon Runner' }
+        { name: 'Dr. Park 🔬', score: 300, game: 'Photon Runner' },
+        { name: 'OpticsLab 🚀', score: 200, game: 'Slot Gate 3D' }
       ];
     }
 
@@ -1039,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       cachedLeaderboard.sort((a, b) => b.score - a.score);
       cachedLeaderboard = cachedLeaderboard.slice(0, 15);
-      localStorage.setItem('yp_cached_leaderboard', JSON.stringify(cachedLeaderboard));
+      localStorage.setItem('yp_leaderboard_v2', JSON.stringify(cachedLeaderboard));
 
       try {
         await fetch(KVDB_ENDPOINT, {
