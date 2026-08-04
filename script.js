@@ -494,13 +494,13 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsRunning = true;
       roadsOver = false;
       roadsScore = 0;
-      gateSpeed = 6.5;
+      gateSpeed = 7.0;
       targetLane = 0;
       playerX3D = 0;
       gates = [];
       gateSpawnTimer = 0;
       superpositionCharges = 0;
-      nextSuperpositionScore = 3000;
+      nextSuperpositionScore = 100;
       waveNotifyTimer = 0;
       waveExplosionTimer = 0;
       // Initial gate
@@ -531,14 +531,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRoads() {
-      // Speed & Score Progression (Gentle curve)
-      gateSpeed = 6.5 + Math.min(6.0, roadsScore / 1000);
+      // 3x Faster Speed Acceleration Progression
+      gateSpeed = 7.0 + Math.min(15.0, (roadsScore / 100) * 0.45);
 
-      // Check Quantum Superposition Wave Bonus (Every 3,000 Score)
+      // Check Quantum Superposition Wave Bonus (Every 100 Score milestone)
       if (roadsScore >= nextSuperpositionScore) {
         superpositionCharges++;
-        nextSuperpositionScore += 3000;
-        waveNotifyTimer = 110; // ~1.8s banner notification
+        nextSuperpositionScore += 100;
+        waveNotifyTimer = 90; // ~1.5s banner notification
       }
 
       // Dynamic responsive slot spacing for mobile vs desktop
