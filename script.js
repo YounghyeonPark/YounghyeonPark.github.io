@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ------------------------------------------------------------------------
-    // GAME 2: Pseudo-3D Slot Roads Engine (SkyRoads Style)
+    // GAME 2: Pseudo-3D Slot Roads Engine (Pure 3D Lane Weaver - No Jump)
     // ------------------------------------------------------------------------
     let roadsRunning = false;
     let roadsOver = false;
@@ -384,12 +384,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let roadsHighScore = parseInt(localStorage.getItem('slotroads_high_score') || '0', 10);
     let roadsAnimId = null;
 
-    let playerLane = 0; // -1: Left, 0: Center, 1: Right
-    let targetLane = 0;
+    let targetLane = 0; // -1: Left, 0: Center, 1: Right
     let playerX3D = 0;
     let playerY3D = 0;
-    let playerVY3D = 0;
-    let isRoadsGrounded = true;
 
     let roadSpeed = 11.0;
     let roadZOffset = 0;
@@ -397,27 +394,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initRoadTrack() {
       roadTrack = [];
-      // Generate 100 track segments
-      for (let i = 0; i < 120; i++) {
-        if (i < 10) {
+      // Generate 120 track segments with 1-2 open slots
+      for (let i = 0; i < 150; i++) {
+        if (i < 12) {
           // Safe starting zone
           roadTrack.push({ left: true, center: true, right: true, obstacle: null });
         } else {
-          // Random slots (gaps and obstacles)
-          const left = Math.random() > 0.25;
-          const center = Math.random() > 0.25;
-          const right = Math.random() > 0.25;
-          // Ensure at least 1 lane is open
-          const hasOpen = left || center || right;
+          // Random open lanes & barriers
+          let left = Math.random() > 0.35;
+          let center = Math.random() > 0.35;
+          let right = Math.random() > 0.35;
+
+          // Ensure at least 1 lane is open, and at most 2 lanes open (so there's always a gap to weave into!)
+          if (!left && !center && !right) {
+            const openIdx = Math.floor(Math.random() * 3);
+            if (openIdx === 0) left = true;
+            else if (openIdx === 1) center = true;
+            else right = true;
+          }
+
           let obstacle = null;
-          if (hasOpen && Math.random() < 0.3) {
+          if (Math.random() < 0.35) {
             obstacle = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
           }
 
           roadTrack.push({
-            left: hasOpen ? left : true,
-            center: hasOpen ? center : true,
-            right: hasOpen ? right : true,
+            left: left,
+            center: center,
+            right: right,
             obstacle: obstacle
           });
         }
@@ -435,12 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsScore = 0;
       roadSpeed = 11.0;
       roadZOffset = 0;
-      playerLane = 0;
       targetLane = 0;
       playerX3D = 0;
       playerY3D = 0;
-      playerVY3D = 0;
-      isRoadsGrounded = true;
       initRoadTrack();
       overlay.classList.add('hidden');
     }
@@ -451,44 +452,31 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsAnimId = requestAnimationFrame(loopRoads);
     }
 
-    function jumpRoads() {
+    function moveLaneLeft() {
       if (!roadsRunning || roadsOver) {
         startRoadsGame();
         return;
       }
-      if (isRoadsGrounded) {
-        playerVY3D = -13;
-        isRoadsGrounded = false;
-      }
-    }
-
-    function moveLaneLeft() {
       if (targetLane > -1) targetLane--;
     }
 
     function moveLaneRight() {
+      if (!roadsRunning || roadsOver) {
+        startRoadsGame();
+        return;
+      }
       if (targetLane < 1) targetLane++;
     }
 
     function updateRoads() {
-      roadsScore += 3;
+      roadsScore += 2;
       if (roadsScore > roadsHighScore) {
         roadsHighScore = roadsScore;
         localStorage.setItem('slotroads_high_score', roadsHighScore);
       }
 
-      // Smooth lane transition
-      playerX3D += (targetLane * 140 - playerX3D) * 0.25;
-
-      // Jump & Gravity
-      playerVY3D += 0.8;
-      playerY3D += playerVY3D;
-
-      if (playerY3D >= 0) {
-        playerY3D = 0;
-        playerVY3D = 0;
-        isRoadsGrounded = true;
-      }
+      // Smooth 3D lane transition
+      playerX3D += (targetLane * 140 - playerX3D) * 0.28;
 
       // Speed progression
       roadZOffset += roadSpeed;
@@ -496,34 +484,32 @@ document.addEventListener('DOMContentLoaded', () => {
       const currentSegmentIndex = Math.floor(roadZOffset / segmentLength);
 
       if (currentSegmentIndex >= roadTrack.length - 15) {
-        // Extend track infinitely
-        for (let i = 0; i < 30; i++) {
-          const left = Math.random() > 0.25;
-          const center = Math.random() > 0.25;
-          const right = Math.random() > 0.25;
-          const hasOpen = left || center || right;
+        for (let i = 0; i < 40; i++) {
+          let left = Math.random() > 0.35;
+          let center = Math.random() > 0.35;
+          let right = Math.random() > 0.35;
+          if (!left && !center && !right) center = true;
+
           roadTrack.push({
-            left: hasOpen ? left : true,
-            center: hasOpen ? center : true,
-            right: hasOpen ? right : true,
-            obstacle: (hasOpen && Math.random() < 0.3) ? Math.floor(Math.random() * 3) - 1 : null
+            left: left,
+            center: center,
+            right: right,
+            obstacle: Math.random() < 0.35 ? Math.floor(Math.random() * 3) - 1 : null
           });
         }
       }
 
-      // Check collision with track gaps and obstacles
+      // Check collision with track gaps and 3D laser barriers
       const currentSeg = roadTrack[currentSegmentIndex];
-      if (currentSeg && isRoadsGrounded) {
+      if (currentSeg) {
         let currentLaneKey = targetLane === -1 ? 'left' : targetLane === 0 ? 'center' : 'right';
         if (!currentSeg[currentLaneKey]) {
-          // Fell into gap!
-          endRoads('Fell Into Deep Space 🌌');
+          endRoads('Fell Into Space Gap 🌌');
           return;
         }
 
         if (currentSeg.obstacle === targetLane) {
-          // Hit barrier!
-          endRoads('Crashed into Laser Barrier ⚡');
+          endRoads('Crashed into 3D Laser Wall ⚡');
           return;
         }
       }
@@ -834,27 +820,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Touch Swipe Router for Mobile
+    // Touch & Mouse Input Router for 2D Jump & 3D Lane Switching
     let touchStartX = 0;
-    let touchStartY = 0;
 
     canvas.addEventListener('touchstart', (e) => {
       touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
     }, { passive: true });
 
     canvas.addEventListener('touchend', (e) => {
       const dx = e.changedTouches[0].clientX - touchStartX;
-      const dy = e.changedTouches[0].clientY - touchStartY;
 
       if (activeGameMode === 'runner') {
         jumpRunner();
       } else {
-        if (Math.abs(dx) > 30) {
+        if (Math.abs(dx) > 25) {
           if (dx > 0) moveLaneRight();
           else moveLaneLeft();
         } else {
-          jumpRoads();
+          const touchX = e.changedTouches[0].clientX;
+          const rect = canvas.getBoundingClientRect();
+          const midX = rect.left + rect.width / 2;
+          if (touchX < midX) moveLaneLeft();
+          else moveLaneRight();
         }
       }
     });
@@ -862,8 +849,14 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse') {
         e.preventDefault();
-        if (activeGameMode === 'runner') jumpRunner();
-        else jumpRoads();
+        if (activeGameMode === 'runner') {
+          jumpRunner();
+        } else {
+          const rect = canvas.getBoundingClientRect();
+          const midX = e.clientX - rect.left;
+          if (midX < rect.width / 2) moveLaneLeft();
+          else moveLaneRight();
+        }
       }
     });
 
