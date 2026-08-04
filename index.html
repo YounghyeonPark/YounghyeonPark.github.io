@@ -49,10 +49,13 @@
       <div class="hero-game-wrapper">
         <div class="game-container" id="game-container">
           <div class="game-header">
-            <span class="game-title"><i class="fas fa-gamepad"></i> Photon Runner — Interactive Lab Game</span>
+            <div class="game-selector-tabs">
+              <button id="tab-runner" class="game-tab-btn active"><i class="fas fa-microscope"></i> Photon Runner (2D)</button>
+              <button id="tab-skyroads" class="game-tab-btn"><i class="fas fa-rocket"></i> Slot Roads (3D)</button>
+            </div>
             <div style="display: flex; align-items: center; gap: 1rem;">
               <button id="leaderboard-toggle-btn" class="leaderboard-toggle-btn"><i class="fas fa-trophy"></i> Leaderboard</button>
-              <span class="game-hint">Controls: Press <strong>Space</strong> or <strong>Tap Canvas</strong> to Jump</span>
+              <span id="game-hint-text" class="game-hint">Controls: Press <strong>Space</strong> or <strong>Tap Canvas</strong> to Jump</span>
             </div>
           </div>
           <canvas id="hero-game-canvas"></canvas>

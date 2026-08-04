@@ -336,6 +336,35 @@ section {
   font-size: 0.85rem;
   margin-bottom: 0.75rem;
   padding: 0 0.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.game-selector-tabs {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.game-tab-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.game-tab-btn.active, .game-tab-btn:hover {
+  background: var(--gradient-accent);
+  color: #ffffff;
+  border-color: var(--accent-cyan);
 }
 
 .game-title {

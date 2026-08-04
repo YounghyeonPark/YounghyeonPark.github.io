@@ -109,28 +109,36 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ==========================================================================
-  // 5. Photon Runner Embedded Mini-Game Engine (Robust Cross-Browser)
+  // 5. Dual Game Arcade Hub: Photon Runner (2D) & Slot Roads (3D)
   // ==========================================================================
   const canvas = document.getElementById('hero-game-canvas');
   const overlay = document.getElementById('game-overlay');
   const startBtn = document.getElementById('game-start-btn');
   const statusTitle = document.getElementById('game-status-title');
   const statusSub = document.getElementById('game-status-sub');
+  const tabRunner = document.getElementById('tab-runner');
+  const tabSkyroads = document.getElementById('tab-skyroads');
+  const gameHintText = document.getElementById('game-hint-text');
+
+  let activeGameMode = 'runner'; // 'runner' or 'skyroads'
 
   if (canvas && overlay && startBtn) {
     const ctx = canvas.getContext('2d');
 
-    let gameRunning = false;
-    let gameOver = false;
-    let score = 0;
-    let highScore = parseInt(localStorage.getItem('photon_high_score') || '0', 10);
-    let animationFrameId = null;
+    // ------------------------------------------------------------------------
+    // GAME 1: 2D Photon Runner Engine
+    // ------------------------------------------------------------------------
+    let runnerRunning = false;
+    let runnerOver = false;
+    let runnerScore = 0;
+    let runnerHighScore = parseInt(localStorage.getItem('photon_high_score') || '0', 10);
+    let runnerAnimId = null;
 
-    let groundY = 205;
-    let baseSpeed = 12.0;
-    let gameSpeed = 12.0;
+    let runnerGroundY = 205;
+    let runnerBaseSpeed = 12.0;
+    let runnerSpeed = 12.0;
 
-    const player = {
+    const runnerPlayer = {
       x: 80,
       y: 0,
       radius: 10,
@@ -141,31 +149,26 @@ document.addEventListener('DOMContentLoaded', () => {
       trail: []
     };
 
-    let obstacles = [];
-    let frameCount = 0;
+    let runnerObstacles = [];
+    let runnerFrameCount = 0;
 
-    function resizeCanvas() {
+    function resizeRunnerCanvas() {
       const rect = canvas.getBoundingClientRect();
       if (rect.width > 0) {
         canvas.width = rect.width;
         canvas.height = rect.height || 240;
-        groundY = canvas.height - 35;
-
-        // Scale player X position relative to screen width
-        player.x = Math.max(45, canvas.width * 0.1);
-
-        // Responsive Speed: Scale speed by width so travel time is equal on mobile & desktop!
+        runnerGroundY = canvas.height - 35;
+        runnerPlayer.x = Math.max(45, canvas.width * 0.1);
         const widthScale = Math.min(1.2, Math.max(0.42, canvas.width / 900));
-        gameSpeed = baseSpeed * widthScale;
+        runnerSpeed = runnerBaseSpeed * widthScale;
 
-        if (!gameRunning) {
-          player.y = groundY - player.radius;
-          drawStatic();
+        if (!runnerRunning && activeGameMode === 'runner') {
+          runnerPlayer.y = runnerGroundY - runnerPlayer.radius;
+          drawRunnerStatic();
         }
       }
     }
 
-    // Helper for cross-browser rounded rectangles
     function drawRoundedRect(ctx, x, y, w, h, r) {
       if (w < 2 * r) r = w / 2;
       if (h < 2 * r) r = h / 2;
@@ -178,328 +181,147 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.closePath();
     }
 
-    function resetGame() {
-      resizeCanvas();
-      gameRunning = true;
-      gameOver = false;
-      score = 0;
-      baseSpeed = 12.0;
-      frameCount = 0;
-      obstacles = [];
-      player.y = groundY - player.radius;
-      player.vy = 0;
-      player.isGrounded = true;
-      player.trail = [];
+    function resetRunner() {
+      resizeRunnerCanvas();
+      runnerRunning = true;
+      runnerOver = false;
+      runnerScore = 0;
+      runnerBaseSpeed = 12.0;
+      runnerFrameCount = 0;
+      runnerObstacles = [];
+      runnerPlayer.y = runnerGroundY - runnerPlayer.radius;
+      runnerPlayer.vy = 0;
+      runnerPlayer.isGrounded = true;
+      runnerPlayer.trail = [];
       overlay.classList.add('hidden');
     }
 
-    function jump() {
-      if (!gameRunning || gameOver) {
-        resetGame();
-        if (!animationFrameId) loop();
+    function jumpRunner() {
+      if (!runnerRunning || runnerOver) {
+        resetRunner();
+        if (!runnerAnimId) loopRunner();
         return;
       }
-      if (player.isGrounded) {
-        player.vy = player.jumpPower;
-        player.isGrounded = false;
+      if (runnerPlayer.isGrounded) {
+        runnerPlayer.vy = runnerPlayer.jumpPower;
+        runnerPlayer.isGrounded = false;
       }
     }
 
-    // Event Listeners
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' || e.code === 'ArrowUp') {
-        const rect = canvas.getBoundingClientRect();
-        if (rect.top > -100 && rect.bottom < window.innerHeight + 100) {
-          e.preventDefault();
-          jump();
-        }
-      }
-    });
-
-    canvas.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      jump();
-    });
-
-    startBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      resetGame();
-      if (!animationFrameId) loop();
-    });
-
-    window.addEventListener('resize', resizeCanvas);
-
-    function spawnObstacle() {
+    function spawnRunnerObstacle() {
       const types = ['lens', 'prism', 'noise'];
       const type = types[Math.floor(Math.random() * types.length)];
       let height = 26 + Math.random() * 20;
       let width = 16 + Math.random() * 12;
 
-      obstacles.push({
+      runnerObstacles.push({
         x: canvas.width + 20,
-        y: groundY - height,
+        y: runnerGroundY - height,
         width: width,
         height: height,
         type: type
       });
     }
 
-    function update() {
-      frameCount++;
-      score += 2;
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('photon_high_score', highScore);
+    function updateRunner() {
+      runnerFrameCount++;
+      runnerScore += 2;
+      if (runnerScore > runnerHighScore) {
+        runnerHighScore = runnerScore;
+        localStorage.setItem('photon_high_score', runnerHighScore);
       }
 
-      if (frameCount % 200 === 0 && baseSpeed < 18.0) {
-        baseSpeed += 0.5;
+      if (runnerFrameCount % 200 === 0 && runnerBaseSpeed < 18.0) {
+        runnerBaseSpeed += 0.5;
         const widthScale = Math.min(1.2, Math.max(0.42, canvas.width / 900));
-        gameSpeed = baseSpeed * widthScale;
+        runnerSpeed = runnerBaseSpeed * widthScale;
       }
 
-      // Player Movement
-      player.vy += player.gravity;
-      player.y += player.vy;
+      runnerPlayer.vy += runnerPlayer.gravity;
+      runnerPlayer.y += runnerPlayer.vy;
 
-      if (player.y >= groundY - player.radius) {
-        player.y = groundY - player.radius;
-        player.vy = 0;
-        player.isGrounded = true;
+      if (runnerPlayer.y >= runnerGroundY - runnerPlayer.radius) {
+        runnerPlayer.y = runnerGroundY - runnerPlayer.radius;
+        runnerPlayer.vy = 0;
+        runnerPlayer.isGrounded = true;
       }
 
-      // Trail
-      player.trail.push({ x: player.x, y: player.y, alpha: 1 });
-      if (player.trail.length > 12) player.trail.shift();
-      player.trail.forEach(t => t.alpha -= 0.07);
+      runnerPlayer.trail.push({ x: runnerPlayer.x, y: runnerPlayer.y, alpha: 1 });
+      if (runnerPlayer.trail.length > 12) runnerPlayer.trail.shift();
+      runnerPlayer.trail.forEach(t => t.alpha -= 0.07);
 
-      // Obstacles
-      if (frameCount % Math.max(20, Math.floor(100 / (gameSpeed * 0.15))) === 0) {
+      if (runnerFrameCount % Math.max(20, Math.floor(100 / (runnerSpeed * 0.15))) === 0) {
         if (Math.random() > 0.2) {
-          spawnObstacle();
+          spawnRunnerObstacle();
         }
       }
 
-      for (let i = obstacles.length - 1; i >= 0; i--) {
-        const obs = obstacles[i];
-        obs.x -= gameSpeed;
+      for (let i = runnerObstacles.length - 1; i >= 0; i--) {
+        const obs = runnerObstacles[i];
+        obs.x -= runnerSpeed;
 
-        // Collision Check
-        const closestX = Math.max(obs.x, Math.min(player.x, obs.x + obs.width));
-        const closestY = Math.max(obs.y, Math.min(player.y, obs.y + obs.height));
-        const distX = player.x - closestX;
-        const distY = player.y - closestY;
+        const closestX = Math.max(obs.x, Math.min(runnerPlayer.x, obs.x + obs.width));
+        const closestY = Math.max(obs.y, Math.min(runnerPlayer.y, obs.y + obs.height));
+        const distX = runnerPlayer.x - closestX;
+        const distY = runnerPlayer.y - closestY;
         const distance = Math.sqrt(distX * distX + distY * distY);
 
-        if (distance < player.radius - 2) {
-          endGame();
+        if (distance < runnerPlayer.radius - 2) {
+          endRunner();
         }
 
         if (obs.x + obs.width < -30) {
-          obstacles.splice(i, 1);
+          runnerObstacles.splice(i, 1);
         }
       }
     }
 
-    function endGame() {
-      gameRunning = false;
-      gameOver = true;
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
+    function endRunner() {
+      runnerRunning = false;
+      runnerOver = true;
+      if (runnerAnimId) {
+        cancelAnimationFrame(runnerAnimId);
+        runnerAnimId = null;
       }
 
-      statusTitle.textContent = 'Game Over 🔬';
-      statusSub.innerHTML = `Distance: <strong>${score} µm</strong> | High Score: <strong>${highScore} µm</strong>`;
+      statusTitle.textContent = 'Photon Runner Over 🔬';
+      statusSub.innerHTML = `Distance: <strong>${runnerScore} µm</strong> | High Score: <strong>${runnerHighScore} µm</strong>`;
       startBtn.innerHTML = '<i class="fas fa-redo"></i> Play Again';
       
-      // Show Nickname submission box if score > 0
       const submitBox = document.getElementById('score-submit-box');
-      if (submitBox && score > 50) {
-        submitBox.style.display = 'flex';
-      }
-
+      if (submitBox && runnerScore > 50) submitBox.style.display = 'flex';
       overlay.classList.remove('hidden');
     }
 
-    // ==========================================================================
-    // Online Leaderboard System (KVDB REST API + LocalStorage Fallback)
-    // ==========================================================================
-    const KVDB_ENDPOINT = 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/photon_leaderboard';
-    const leaderboardOverlay = document.getElementById('leaderboard-overlay');
-    const leaderboardToggleBtn = document.getElementById('leaderboard-toggle-btn');
-    const leaderboardCloseBtn = document.getElementById('leaderboard-close-btn');
-    const leaderboardList = document.getElementById('leaderboard-list');
-    const submitScoreBtn = document.getElementById('submit-score-btn');
-    const nicknameInput = document.getElementById('nickname-input');
-
-    let globalScores = [
-      { name: 'Dr. Park (Host)', score: 1250, date: '2026-08-04' },
-      { name: 'Optics Master', score: 840, date: '2026-08-04' },
-      { name: 'Photon Speed', score: 620, date: '2026-08-04' }
-    ];
-
-    async function fetchLeaderboard() {
-      try {
-        const response = await fetch(KVDB_ENDPOINT);
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
-            globalScores = data;
-          }
-        }
-      } catch (err) {
-        console.log('Using local/cached leaderboard:', err);
-        const cached = localStorage.getItem('photon_cached_leaderboard');
-        if (cached) {
-          try { globalScores = JSON.parse(cached); } catch (e) {}
-        }
-      }
-      renderLeaderboardUI();
-    }
-
-    async function saveLeaderboard() {
-      localStorage.setItem('photon_cached_leaderboard', JSON.stringify(globalScores));
-      try {
-        await fetch(KVDB_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(globalScores)
-        });
-      } catch (err) {
-        console.log('Saved to local cache:', err);
-      }
-    }
-
-    function renderLeaderboardUI() {
-      if (!leaderboardList) return;
-      leaderboardList.innerHTML = '';
-
-      if (globalScores.length === 0) {
-        leaderboardList.innerHTML = '<div class="leaderboard-item">No scores yet. Be the first!</div>';
-        return;
-      }
-
-      globalScores.sort((a, b) => b.score - a.score);
-      const topScores = globalScores.slice(0, 10);
-
-      topScores.forEach((item, index) => {
-        const rank = index + 1;
-        const rankBadge = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-        const div = document.createElement('div');
-        div.className = `leaderboard-item rank-${rank}`;
-        div.innerHTML = `
-          <div class="leaderboard-player">
-            <span class="leaderboard-rank-badge">${rankBadge}</span>
-            <span class="leaderboard-name">${escapeHtml(item.name)}</span>
-          </div>
-          <span class="leaderboard-score">${item.score} µm</span>
-        `;
-        leaderboardList.appendChild(div);
-      });
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    function closeLeaderboard() {
-      if (leaderboardOverlay) {
-        leaderboardOverlay.classList.add('hidden');
-      }
-    }
-
-    if (leaderboardToggleBtn && leaderboardOverlay) {
-      leaderboardToggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        fetchLeaderboard();
-        leaderboardOverlay.classList.remove('hidden');
-      });
-    }
-
-    if (leaderboardCloseBtn) {
-      leaderboardCloseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeLeaderboard();
-      });
-    }
-
-    const leaderboardCloseBtnBottom = document.getElementById('leaderboard-close-btn-bottom');
-    if (leaderboardCloseBtnBottom) {
-      leaderboardCloseBtnBottom.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeLeaderboard();
-      });
-    }
-
-    if (leaderboardOverlay) {
-      leaderboardOverlay.addEventListener('click', (e) => {
-        if (e.target === leaderboardOverlay) {
-          closeLeaderboard();
-        }
-      });
-    }
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && leaderboardOverlay && !leaderboardOverlay.classList.contains('hidden')) {
-        closeLeaderboard();
-      }
-    });
-
-    if (submitScoreBtn && nicknameInput) {
-      submitScoreBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const name = nicknameInput.value.trim() || 'Anonymous';
-        globalScores.push({
-          name: name,
-          score: score,
-          date: new Date().toISOString().slice(0, 10)
-        });
-
-        saveLeaderboard();
-        document.getElementById('score-submit-box').style.display = 'none';
-        leaderboardOverlay.classList.remove('hidden');
-        renderLeaderboardUI();
-      });
-    }
-
-    // Initial Leaderboard Fetch
-    fetchLeaderboard();
-
-    function draw() {
-      // Clear Background
+    function drawRunner() {
       ctx.fillStyle = '#050811';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Ground Line
       ctx.beginPath();
-      ctx.moveTo(0, groundY);
-      ctx.lineTo(canvas.width, groundY);
+      ctx.moveTo(0, runnerGroundY);
+      ctx.lineTo(canvas.width, runnerGroundY);
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Draw Trail
-      player.trail.forEach(t => {
+      runnerPlayer.trail.forEach(t => {
         if (t.alpha > 0) {
           ctx.beginPath();
-          ctx.arc(t.x, t.y, player.radius * 0.6, 0, Math.PI * 2);
+          ctx.arc(t.x, t.y, runnerPlayer.radius * 0.6, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(56, 189, 248, ${t.alpha * 0.45})`;
           ctx.fill();
         }
       });
 
-      // Draw Player Photon
       ctx.beginPath();
-      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.arc(runnerPlayer.x, runnerPlayer.y, runnerPlayer.radius, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
       ctx.shadowBlur = 10;
       ctx.shadowColor = '#38bdf8';
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Draw Obstacles
-      obstacles.forEach(obs => {
+      runnerObstacles.forEach(obs => {
         if (obs.type === 'lens') {
           drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
           ctx.fillStyle = 'rgba(20, 184, 166, 0.4)';
@@ -529,27 +351,410 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
+      ctx.font = '12px "Fira Code", monospace';
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillText(`Distance: ${runnerScore} µm`, 16, 22);
+      ctx.fillText(`High: ${runnerHighScore} µm`, canvas.width - 120, 22);
+    }
+
+    function drawRunnerStatic() { drawRunner(); }
+
+    function loopRunner() {
+      if (!runnerRunning || activeGameMode !== 'runner') return;
+      updateRunner();
+      drawRunner();
+      runnerAnimId = requestAnimationFrame(loopRunner);
+    }
+
+    // ------------------------------------------------------------------------
+    // GAME 2: Pseudo-3D Slot Roads Engine (SkyRoads Style)
+    // ------------------------------------------------------------------------
+    let roadsRunning = false;
+    let roadsOver = false;
+    let roadsScore = 0;
+    let roadsHighScore = parseInt(localStorage.getItem('slotroads_high_score') || '0', 10);
+    let roadsAnimId = null;
+
+    let playerLane = 0; // -1: Left, 0: Center, 1: Right
+    let targetLane = 0;
+    let playerX3D = 0;
+    let playerY3D = 0;
+    let playerVY3D = 0;
+    let isRoadsGrounded = true;
+
+    let roadSpeed = 16;
+    let roadZOffset = 0;
+    let roadTrack = [];
+
+    function initRoadTrack() {
+      roadTrack = [];
+      // Generate 100 track segments
+      for (let i = 0; i < 120; i++) {
+        if (i < 10) {
+          // Safe starting zone
+          roadTrack.push({ left: true, center: true, right: true, obstacle: null });
+        } else {
+          // Random slots (gaps and obstacles)
+          const left = Math.random() > 0.25;
+          const center = Math.random() > 0.25;
+          const right = Math.random() > 0.25;
+          // Ensure at least 1 lane is open
+          const hasOpen = left || center || right;
+          let obstacle = null;
+          if (hasOpen && Math.random() < 0.3) {
+            obstacle = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+          }
+
+          roadTrack.push({
+            left: hasOpen ? left : true,
+            center: hasOpen ? center : true,
+            right: hasOpen ? right : true,
+            obstacle: obstacle
+          });
+        }
+      }
+    }
+
+    function resetRoads() {
+      resizeRunnerCanvas();
+      roadsRunning = true;
+      roadsOver = false;
+      roadsScore = 0;
+      roadSpeed = 16;
+      roadZOffset = 0;
+      playerLane = 0;
+      targetLane = 0;
+      playerX3D = 0;
+      playerY3D = 0;
+      playerVY3D = 0;
+      isRoadsGrounded = true;
+      initRoadTrack();
+      overlay.classList.add('hidden');
+    }
+
+    function jumpRoads() {
+      if (!roadsRunning || roadsOver) {
+        resetRoads();
+        if (!roadsAnimId) loopRoads();
+        return;
+      }
+      if (isRoadsGrounded) {
+        playerVY3D = -13;
+        isRoadsGrounded = false;
+      }
+    }
+
+    function moveLaneLeft() {
+      if (targetLane > -1) targetLane--;
+    }
+
+    function moveLaneRight() {
+      if (targetLane < 1) targetLane++;
+    }
+
+    function updateRoads() {
+      roadsScore += 3;
+      if (roadsScore > roadsHighScore) {
+        roadsHighScore = roadsScore;
+        localStorage.setItem('slotroads_high_score', roadsHighScore);
+      }
+
+      // Smooth lane transition
+      playerX3D += (targetLane * 140 - playerX3D) * 0.25;
+
+      // Jump & Gravity
+      playerVY3D += 0.8;
+      playerY3D += playerVY3D;
+
+      if (playerY3D >= 0) {
+        playerY3D = 0;
+        playerVY3D = 0;
+        isRoadsGrounded = true;
+      }
+
+      // Speed progression
+      roadZOffset += roadSpeed;
+      const segmentLength = 120;
+      const currentSegmentIndex = Math.floor(roadZOffset / segmentLength);
+
+      if (currentSegmentIndex >= roadTrack.length - 15) {
+        // Extend track infinitely
+        for (let i = 0; i < 30; i++) {
+          const left = Math.random() > 0.25;
+          const center = Math.random() > 0.25;
+          const right = Math.random() > 0.25;
+          const hasOpen = left || center || right;
+          roadTrack.push({
+            left: hasOpen ? left : true,
+            center: hasOpen ? center : true,
+            right: hasOpen ? right : true,
+            obstacle: (hasOpen && Math.random() < 0.3) ? Math.floor(Math.random() * 3) - 1 : null
+          });
+        }
+      }
+
+      // Check collision with track gaps and obstacles
+      const currentSeg = roadTrack[currentSegmentIndex];
+      if (currentSeg && isRoadsGrounded) {
+        let currentLaneKey = targetLane === -1 ? 'left' : targetLane === 0 ? 'center' : 'right';
+        if (!currentSeg[currentLaneKey]) {
+          // Fell into gap!
+          endRoads('Fell Into Deep Space 🌌');
+          return;
+        }
+
+        if (currentSeg.obstacle === targetLane) {
+          // Hit barrier!
+          endRoads('Crashed into Laser Barrier ⚡');
+          return;
+        }
+      }
+    }
+
+    function endRoads(reason) {
+      roadsRunning = false;
+      roadsOver = true;
+      if (roadsAnimId) {
+        cancelAnimationFrame(roadsAnimId);
+        roadsAnimId = null;
+      }
+
+      statusTitle.textContent = 'Slot Roads Over 🚀';
+      statusSub.innerHTML = `${reason}<br>Score: <strong>${roadsScore} ly</strong> | High: <strong>${roadsHighScore} ly</strong>`;
+      startBtn.innerHTML = '<i class="fas fa-redo"></i> Launch Again';
+
+      const submitBox = document.getElementById('score-submit-box');
+      if (submitBox && roadsScore > 50) submitBox.style.display = 'flex';
+      overlay.classList.remove('hidden');
+    }
+
+    function drawRoads() {
+      // Background Synthwave Space
+      ctx.fillStyle = '#050714';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const fov = 280;
+      const horizonY = canvas.height * 0.32;
+      const cx = canvas.width / 2;
+      const cameraHeight = 120;
+      const segmentLength = 120;
+
+      // Draw Starfield Background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      for (let i = 0; i < 20; i++) {
+        let sx = (Math.sin(i * 99 + roadZOffset * 0.001) * 0.5 + 0.5) * canvas.width;
+        let sy = (Math.cos(i * 33) * 0.5 + 0.5) * horizonY;
+        ctx.fillRect(sx, sy, 1.5, 1.5);
+      }
+
+      // Draw 3D Track Slots
+      const visibleSegments = 25;
+      const startIdx = Math.floor(roadZOffset / segmentLength);
+
+      for (let i = visibleSegments; i >= 0; i--) {
+        const segIdx = startIdx + i;
+        const seg = roadTrack[segIdx];
+        if (!seg) continue;
+
+        const z1 = (segIdx * segmentLength) - roadZOffset + 80;
+        const z2 = z1 + segmentLength;
+
+        if (z1 <= 10) continue;
+
+        const scale1 = fov / z1;
+        const scale2 = fov / z2;
+
+        const y1 = horizonY + cameraHeight * scale1;
+        const y2 = horizonY + cameraHeight * scale2;
+
+        const lanes = [
+          { key: 'left', xOffset: -140 },
+          { key: 'center', xOffset: 0 },
+          { key: 'right', xOffset: 140 }
+        ];
+
+        lanes.forEach((lane, laneIdx) => {
+          if (!seg[lane.key]) return; // Gap / Hole
+
+          const x1a = cx + (lane.xOffset - 60) * scale1;
+          const x1b = cx + (lane.xOffset + 60) * scale1;
+          const x2a = cx + (lane.xOffset - 60) * scale2;
+          const x2b = cx + (lane.xOffset + 60) * scale2;
+
+          ctx.beginPath();
+          ctx.moveTo(x1a, y1);
+          ctx.lineTo(x1b, y1);
+          ctx.lineTo(x2b, y2);
+          ctx.lineTo(x2a, y2);
+          ctx.closePath();
+
+          ctx.fillStyle = (segIdx % 2 === 0) ? 'rgba(56, 189, 248, 0.15)' : 'rgba(20, 184, 166, 0.15)';
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1;
+          ctx.fill();
+          ctx.stroke();
+
+          // Obstacle on track
+          if (seg.obstacle === (laneIdx - 1)) {
+            const obsY1 = y1 - 40 * scale1;
+            const obsY2 = y2 - 40 * scale2;
+
+            ctx.beginPath();
+            ctx.moveTo(x1a, obsY1);
+            ctx.lineTo(x1b, obsY1);
+            ctx.lineTo(x2b, obsY2);
+            ctx.lineTo(x2a, obsY2);
+            ctx.closePath();
+
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 1.5;
+            ctx.fill();
+            ctx.stroke();
+          }
+        });
+      }
+
+      // Draw 3D Player Spaceship/Probe
+      const playerScale = fov / 120;
+      const px = cx + (playerX3D * playerScale);
+      const py = horizonY + (cameraHeight + playerY3D) * playerScale;
+
+      // Spaceship Body
+      ctx.beginPath();
+      ctx.moveTo(px, py - 18);
+      ctx.lineTo(px + 18, py + 12);
+      ctx.lineTo(px, py + 6);
+      ctx.lineTo(px - 18, py + 12);
+      ctx.closePath();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#38bdf8';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
       // HUD Text
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText(`Distance: ${score} µm`, 16, 22);
-      ctx.fillText(`High: ${highScore} µm`, canvas.width - 120, 22);
+      ctx.fillText(`Distance: ${roadsScore} ly`, 16, 22);
+      ctx.fillText(`High: ${roadsHighScore} ly`, canvas.width - 120, 22);
     }
 
-    function drawStatic() {
-      draw();
+    function drawRoadsStatic() { drawRoads(); }
+
+    function loopRoads() {
+      if (!roadsRunning || activeGameMode !== 'skyroads') return;
+      updateRoads();
+      drawRoads();
+      roadsAnimId = requestAnimationFrame(loopRoads);
     }
 
-    function loop() {
-      if (!gameRunning) return;
-      update();
-      draw();
-      animationFrameId = requestAnimationFrame(loop);
+    // ------------------------------------------------------------------------
+    // Game Mode Switcher & Input Router
+    // ------------------------------------------------------------------------
+    if (tabRunner && tabSkyroads) {
+      tabRunner.addEventListener('click', () => {
+        tabRunner.classList.add('active');
+        tabSkyroads.classList.remove('active');
+        activeGameMode = 'runner';
+        gameHintText.innerHTML = 'Controls: Press <strong>Space</strong> or <strong>Tap</strong> to Jump';
+        statusTitle.textContent = 'Photon Runner 🔬';
+        statusSub.innerHTML = 'Jump over optical lenses & sensor noise spikes!';
+        startBtn.innerHTML = '<i class="fas fa-play"></i> Start Game';
+        resizeRunnerCanvas();
+        overlay.classList.remove('hidden');
+      });
+
+      tabSkyroads.addEventListener('click', () => {
+        tabSkyroads.classList.add('active');
+        tabRunner.classList.remove('active');
+        activeGameMode = 'skyroads';
+        gameHintText.innerHTML = 'Controls: <strong>←/→</strong> or <strong>Swipe</strong> to Switch Lane | <strong>Space</strong> to Jump';
+        statusTitle.textContent = 'Slot Roads (3D) 🚀';
+        statusSub.innerHTML = '3D SkyRoads-style space track runner! Jump gaps & dodge lasers!';
+        startBtn.innerHTML = '<i class="fas fa-rocket"></i> Launch Game';
+        resizeRunnerCanvas();
+        overlay.classList.remove('hidden');
+      });
     }
 
-    // Initialize Canvas Dimensions & Static Render
+    // Unified Keyboard Listeners
+    window.addEventListener('keydown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const inView = (rect.top > -100 && rect.bottom < window.innerHeight + 100);
+
+      if (!inView) return;
+
+      if (activeGameMode === 'runner') {
+        if (e.code === 'Space' || e.code === 'ArrowUp') {
+          e.preventDefault();
+          jumpRunner();
+        }
+      } else {
+        if (e.code === 'Space' || e.code === 'ArrowUp') {
+          e.preventDefault();
+          jumpRoads();
+        } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+          e.preventDefault();
+          moveLaneLeft();
+        } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+          e.preventDefault();
+          moveLaneRight();
+        }
+      }
+    });
+
+    // Touch Swipe Router for Mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+
+      if (activeGameMode === 'runner') {
+        jumpRunner();
+      } else {
+        if (Math.abs(dx) > 30) {
+          if (dx > 0) moveLaneRight();
+          else moveLaneLeft();
+        } else {
+          jumpRoads();
+        }
+      }
+    });
+
+    canvas.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse') {
+        e.preventDefault();
+        if (activeGameMode === 'runner') jumpRunner();
+        else jumpRoads();
+      }
+    });
+
+    startBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (activeGameMode === 'runner') {
+        resetRunner();
+        if (!runnerAnimId) loopRunner();
+      } else {
+        resetRoads();
+        if (!roadsAnimId) loopRoads();
+      }
+    });
+
+    // Initial setup
     setTimeout(() => {
-      resizeCanvas();
+      resizeRunnerCanvas();
     }, 100);
   }
 });
