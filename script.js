@@ -656,6 +656,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------------
     // Game Mode Switcher & Input Router
     // ------------------------------------------------------------------------
+    // Center Big Game Selection Cards Handlers
+    const selectRunnerBtn = document.getElementById('select-game-runner');
+    const selectSkyroadsBtn = document.getElementById('select-game-skyroads');
+    const gameModeCards = document.getElementById('game-mode-selector-cards');
+
+    if (selectRunnerBtn && selectSkyroadsBtn) {
+      selectRunnerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (tabRunner && tabSkyroads) {
+          tabRunner.classList.add('active');
+          tabSkyroads.classList.remove('active');
+        }
+        activeGameMode = 'runner';
+        gameHintText.innerHTML = 'Controls: Press <strong>Space</strong> or <strong>Tap</strong> to Jump';
+        resetRunner();
+        if (!runnerAnimId) loopRunner();
+      });
+
+      selectSkyroadsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (tabRunner && tabSkyroads) {
+          tabSkyroads.classList.add('active');
+          tabRunner.classList.remove('active');
+        }
+        activeGameMode = 'skyroads';
+        gameHintText.innerHTML = 'Controls: <strong>←/→</strong> or <strong>Swipe</strong> to Switch Lane | <strong>Space</strong> to Jump';
+        resetRoads();
+        if (!roadsAnimId) loopRoads();
+      });
+    }
+
     if (tabRunner && tabSkyroads) {
       tabRunner.addEventListener('click', () => {
         tabRunner.classList.add('active');
@@ -664,7 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameHintText.innerHTML = 'Controls: Press <strong>Space</strong> or <strong>Tap</strong> to Jump';
         statusTitle.textContent = 'Photon Runner 🔬';
         statusSub.innerHTML = 'Jump over optical lenses & sensor noise spikes!';
-        startBtn.innerHTML = '<i class="fas fa-play"></i> Start Game';
+        if (gameModeCards) gameModeCards.style.display = 'flex';
         resizeRunnerCanvas();
         overlay.classList.remove('hidden');
       });
@@ -676,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameHintText.innerHTML = 'Controls: <strong>←/→</strong> or <strong>Swipe</strong> to Switch Lane | <strong>Space</strong> to Jump';
         statusTitle.textContent = 'Slot Roads (3D) 🚀';
         statusSub.innerHTML = '3D SkyRoads-style space track runner! Jump gaps & dodge lasers!';
-        startBtn.innerHTML = '<i class="fas fa-rocket"></i> Launch Game';
+        if (gameModeCards) gameModeCards.style.display = 'flex';
         resizeRunnerCanvas();
         overlay.classList.remove('hidden');
       });

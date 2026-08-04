@@ -62,15 +62,32 @@
           
           <div class="game-overlay" id="game-overlay">
             <div class="game-overlay-content">
-              <div id="game-status-title">Photon Runner 🔬</div>
-              <div id="game-status-sub">Jump over optical lenses & sensor noise spikes!</div>
+              <div id="game-status-title">Lab Arcade Hub 🔬🚀</div>
+              <div id="game-status-sub">Select a game mode to start playing!</div>
               
               <div id="score-submit-box" class="score-submit-box" style="display: none;">
                 <input type="text" id="nickname-input" class="nickname-input" placeholder="Your Nickname" maxlength="12">
                 <button id="submit-score-btn" class="btn btn-outline btn-sm"><i class="fas fa-paper-plane"></i> Submit</button>
               </div>
 
-              <button id="game-start-btn" class="btn btn-primary"><i class="fas fa-play"></i> Start Game</button>
+              <!-- Center Game Mode Selection Cards -->
+              <div id="game-mode-selector-cards" class="game-mode-selector-cards">
+                <button id="select-game-runner" class="game-select-card">
+                  <div class="card-icon"><i class="fas fa-microscope"></i></div>
+                  <div class="card-title">Photon Runner</div>
+                  <div class="card-desc">2D Optics Jump</div>
+                  <div class="card-badge">Play 2D</div>
+                </button>
+                
+                <button id="select-game-skyroads" class="game-select-card">
+                  <div class="card-icon"><i class="fas fa-rocket"></i></div>
+                  <div class="card-title">Slot Roads</div>
+                  <div class="card-desc">3D SkyRoads Track</div>
+                  <div class="card-badge">Play 3D</div>
+                </button>
+              </div>
+
+              <button id="game-start-btn" class="btn btn-primary" style="display: none;"><i class="fas fa-play"></i> Start Game</button>
             </div>
           </div>
 
