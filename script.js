@@ -464,8 +464,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // Speed & Score Progression (Gentle curve)
       gateSpeed = 6.5 + Math.min(6.0, roadsScore / 1000);
 
-      // Snappy 3D Lane Transition
-      playerX3D += (targetLane * 140 - playerX3D) * 0.38;
+      // Dynamic responsive slot spacing for mobile vs desktop
+      const playerZ = 120;
+      const fov = 280;
+      const playerScale = fov / playerZ; // 2.333
+      const baseSlotSpacing = (canvas.width * 0.30) / playerScale;
+
+      // Smooth 3D Lane Transition
+      playerX3D += (targetLane * baseSlotSpacing - playerX3D) * 0.38;
 
       // Spawn new gates with generous distance (Interval > 550)
       gateSpawnTimer += gateSpeed;
@@ -474,15 +480,13 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnGate();
       }
 
-      // Move gates towards player (Z: 900 -> 120)
-      const playerZ = 120;
-
+      // Move gates towards player (Z: 1100 -> 120)
       for (let i = gates.length - 1; i >= 0; i--) {
         const gate = gates[i];
         gate.z -= gateSpeed;
 
         // Check Collision when gate reaches player Z plane
-        if (!gate.cleared && gate.z <= playerZ + 20 && gate.z >= playerZ - 20) {
+        if (!gate.cleared && gate.z <= playerZ + 25 && gate.z >= playerZ - 25) {
           const playerSlotIndex = targetLane + 1; // 0, 1, or 2
           if (gate.slots[playerSlotIndex]) {
             // Hit Solid Wall!
@@ -551,9 +555,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Sort and Draw 3D Wall Gates from Far to Near
       const sortedGates = [...gates].sort((a, b) => b.z - a.z);
 
-      const slotOffsets = [-140, 0, 140];
-      const slotWidth = 120;
-      const wallHeight3D = 180;
+      const playerZ = 120;
+      const playerScale = fov / playerZ; // 2.333
+      const baseSlotSpacing = (canvas.width * 0.30) / playerScale;
+      const slotOffsets = [-baseSlotSpacing, 0, baseSlotSpacing];
+      const slotWidth = (canvas.width * 0.26) / playerScale;
+      const wallHeight3D = 170;
 
       sortedGates.forEach(gate => {
         const scale = fov / Math.max(30, gate.z);
@@ -622,12 +629,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      // Draw Player 3D Volumetric Photon Sphere
-      const playerZ = 120;
-      const playerScale = fov / playerZ;
+      // Draw Player 3D Volumetric Photon Sphere (Always visible on mobile & desktop!)
       const px = cx + (playerX3D * playerScale);
       const py = horizonY + (wallHeight3D * 0.25) * playerScale;
-      const photonRadius = 15 * playerScale;
+      const photonRadius = Math.max(10, (canvas.width * 0.035) * (playerScale / 2.33));
 
       // Outer Volumetric Photon Glow Aura
       const outerGlow = ctx.createRadialGradient(px, py, Math.max(1, photonRadius * 0.2), px, py, Math.max(2, photonRadius * 2.4));
