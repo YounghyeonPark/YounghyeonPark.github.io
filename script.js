@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerFrameCount = 0;
       runnerObstacles = [];
       tunnelingCharges = 0;
-      nextTunnelingScore = 5000;
+      nextTunnelingScore = 10000;
       tunnelingNotifyTimer = 0;
       tunnelingEffectTimer = 0;
       runnerPlayer.y = runnerGroundY - runnerPlayer.radius;
@@ -269,10 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('photon_high_score', runnerHighScore);
       }
 
-      // Check Quantum Tunneling Bonus Threshold (Every 5,000 Score)
+      // Check Quantum Tunneling Bonus Threshold (Every 10,000 Score)
       if (runnerScore >= nextTunnelingScore) {
         tunnelingCharges++;
-        nextTunnelingScore += 5000;
+        nextTunnelingScore += 10000;
         tunnelingNotifyTimer = 110; // ~1.8 seconds notification
       }
 
