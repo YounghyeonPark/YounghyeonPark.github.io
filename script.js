@@ -332,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function endRunner() {
       runnerRunning = false;
       runnerOver = true;
+      triggerGameOverCooldown();
       if (runnerAnimId) {
         cancelAnimationFrame(runnerAnimId);
         runnerAnimId = null;
@@ -516,20 +517,27 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsAnimId = requestAnimationFrame(loopRoads);
     }
 
+    let canRestart = true;
+    let restartCooldownTimer = null;
+
     function moveLaneLeft() {
-      if (!roadsRunning || roadsOver) {
-        startRoadsGame();
-        return;
+      if (roadsRunning && !roadsOver) {
+        if (targetLane > -1) targetLane--;
       }
-      if (targetLane > -1) targetLane--;
     }
 
     function moveLaneRight() {
-      if (!roadsRunning || roadsOver) {
-        startRoadsGame();
-        return;
+      if (roadsRunning && !roadsOver) {
+        if (targetLane < 1) targetLane++;
       }
-      if (targetLane < 1) targetLane++;
+    }
+
+    function triggerGameOverCooldown() {
+      canRestart = false;
+      if (restartCooldownTimer) clearTimeout(restartCooldownTimer);
+      restartCooldownTimer = setTimeout(() => {
+        canRestart = true;
+      }, 450);
     }
 
     function updateRoads() {
@@ -624,6 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function endRoads(reason) {
       roadsRunning = false;
       roadsOver = true;
+      triggerGameOverCooldown();
       if (roadsAnimId) {
         cancelAnimationFrame(roadsAnimId);
         roadsAnimId = null;
@@ -635,6 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const submitBox = document.getElementById('score-submit-box');
       if (submitBox && roadsScore > 50) submitBox.style.display = 'flex';
+      if (gameModeCards) gameModeCards.style.display = 'flex';
       
       resizeRunnerCanvas();
       overlay.classList.remove('hidden');
@@ -1131,6 +1141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     startBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (!canRestart) return;
       if (activeGameMode === 'runner') {
         resetRunner();
         if (!runnerAnimId) loopRunner();
