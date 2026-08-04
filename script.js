@@ -679,10 +679,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Draw 3D Volumetric Glowing Photon Sphere (Replacing 2D Arrow)
+      const playerZ = 120;
+      const playerScale = fov / playerZ;
+      const px = cx + (playerX3D * playerScale);
+      const py = (horizonY + cameraHeight * playerScale) + (playerY3D * playerScale);
       const photonRadius = 14 * playerScale;
 
       // 1. Outer Volumetric Photon Glow Aura
-      const outerGlow = ctx.createRadialGradient(px, py, photonRadius * 0.2, px, py, photonRadius * 2.4);
+      const outerGlow = ctx.createRadialGradient(px, py, Math.max(1, photonRadius * 0.2), px, py, Math.max(2, photonRadius * 2.4));
       outerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
       outerGlow.addColorStop(0.3, 'rgba(56, 189, 248, 0.85)');
       outerGlow.addColorStop(0.7, 'rgba(20, 184, 166, 0.35)');
@@ -695,19 +699,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 2. 3D Orbital Light Rings (Wavefront Rings orbiting the Photon)
       ctx.beginPath();
-      ctx.ellipse(px, py + 2, photonRadius * 1.8, photonRadius * 0.65, Math.PI / 6, 0, Math.PI * 2);
+      ctx.ellipse(px, py + 2, Math.max(2, photonRadius * 1.8), Math.max(1, photonRadius * 0.65), Math.PI / 6, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.ellipse(px, py - 2, photonRadius * 1.8, photonRadius * 0.65, -Math.PI / 6, 0, Math.PI * 2);
+      ctx.ellipse(px, py - 2, Math.max(2, photonRadius * 1.8), Math.max(1, photonRadius * 0.65), -Math.PI / 6, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(168, 85, 247, 0.75)';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
       // 3. Core 3D White Hot Photon Sphere
-      const coreGrad = ctx.createRadialGradient(px - photonRadius * 0.3, py - photonRadius * 0.3, 1, px, py, photonRadius);
+      const coreGrad = ctx.createRadialGradient(Math.max(0, px - photonRadius * 0.3), Math.max(0, py - photonRadius * 0.3), 1, px, py, Math.max(2, photonRadius));
       coreGrad.addColorStop(0, '#ffffff');
       coreGrad.addColorStop(0.5, '#38bdf8');
       coreGrad.addColorStop(1, '#0284c7');
