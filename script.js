@@ -126,14 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let highScore = parseInt(localStorage.getItem('photon_high_score') || '0', 10);
     let animationFrameId = null;
 
-    let groundY = 130;
+    let groundY = 205;
     const player = {
       x: 80,
       y: 0,
       radius: 10,
       vy: 0,
-      gravity: 0.85,
-      jumpPower: -12.5,
+      gravity: 0.8,
+      jumpPower: -13.5,
       isGrounded: true,
       trail: []
     };
@@ -146,8 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const rect = canvas.getBoundingClientRect();
       if (rect.width > 0) {
         canvas.width = rect.width;
-        canvas.height = rect.height || 160;
-        groundY = canvas.height - 30;
+        canvas.height = rect.height || 240;
+        groundY = canvas.height - 35;
         if (!gameRunning) {
           player.y = groundY - player.radius;
           drawStatic();

@@ -361,7 +361,7 @@ section {
 
 #hero-game-canvas {
   width: 100%;
-  height: 160px;
+  height: 240px;
   background: #050811;
   border-radius: var(--radius-sm);
   display: block;
