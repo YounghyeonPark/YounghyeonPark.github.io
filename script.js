@@ -128,19 +128,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let groundY = 130;
     const player = {
-      x: 70,
+      x: 80,
       y: 0,
       radius: 10,
       vy: 0,
-      gravity: 0.6,
-      jumpPower: -10,
+      gravity: 0.85,
+      jumpPower: -12.5,
       isGrounded: true,
       trail: []
     };
 
     let obstacles = [];
     let frameCount = 0;
-    let gameSpeed = 4.5;
+    let gameSpeed = 12.0;
 
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
       gameRunning = true;
       gameOver = false;
       score = 0;
-      gameSpeed = 4.5;
+      gameSpeed = 12.0;
       frameCount = 0;
       obstacles = [];
       player.y = groundY - player.radius;
@@ -236,14 +236,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function update() {
       frameCount++;
-      score++;
+      score += 2;
       if (score > highScore) {
         highScore = score;
         localStorage.setItem('photon_high_score', highScore);
       }
 
-      if (frameCount % 250 === 0 && gameSpeed < 9) {
-        gameSpeed += 0.4;
+      if (frameCount % 200 === 0 && gameSpeed < 18.0) {
+        gameSpeed += 0.5;
       }
 
       // Player Movement
@@ -262,8 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
       player.trail.forEach(t => t.alpha -= 0.07);
 
       // Obstacles
-      if (frameCount % Math.max(45, Math.floor(180 / (gameSpeed * 0.4))) === 0) {
-        if (Math.random() > 0.25) {
+      if (frameCount % Math.max(20, Math.floor(100 / (gameSpeed * 0.15))) === 0) {
+        if (Math.random() > 0.2) {
           spawnObstacle();
         }
       }
