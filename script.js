@@ -221,11 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function jumpRunner() {
-      if (!runnerRunning || runnerOver) {
-        startRunnerGame();
-        return;
-      }
-      if (runnerPlayer.isGrounded) {
+      if (runnerRunning && !runnerOver && runnerPlayer.isGrounded) {
         runnerPlayer.vy = runnerPlayer.jumpPower;
         runnerPlayer.isGrounded = false;
       }
@@ -932,12 +928,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (activeGameMode === 'runner') {
         if (e.code === 'Space' || e.code === 'ArrowUp') {
           e.preventDefault();
-          jumpRunner();
+          if (runnerRunning && !runnerOver) {
+            jumpRunner();
+          } else if (runnerOver && canRestart) {
+            startRunnerGame();
+          }
         }
       } else {
         if (e.code === 'Space' || e.code === 'ArrowUp') {
           e.preventDefault();
-          jumpRoads();
+          if (roadsOver && canRestart) {
+            startRoadsGame();
+          }
         } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
           e.preventDefault();
           moveLaneLeft();
