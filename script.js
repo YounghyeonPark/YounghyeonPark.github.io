@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
       gates = [];
       gateSpawnTimer = 0;
       superpositionCharges = 0;
-      nextSuperpositionScore = 100;
+      nextSuperpositionScore = 500;
       waveNotifyTimer = 0;
       waveExplosionTimer = 0;
       // Initial gate
@@ -534,10 +534,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // 3x Faster Speed Acceleration Progression
       gateSpeed = 7.0 + Math.min(15.0, (roadsScore / 100) * 0.45);
 
-      // Check Quantum Superposition Wave Bonus (Every 100 Score milestone)
+      // Check Quantum Superposition Wave Bonus (Every 500 Score / 5 Gates)
       if (roadsScore >= nextSuperpositionScore) {
         superpositionCharges++;
-        nextSuperpositionScore += 100;
+        nextSuperpositionScore += 500;
         waveNotifyTimer = 90; // ~1.5s banner notification
       }
 
