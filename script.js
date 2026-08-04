@@ -300,8 +300,128 @@ document.addEventListener('DOMContentLoaded', () => {
       statusTitle.textContent = 'Game Over 🔬';
       statusSub.innerHTML = `Distance: <strong>${score} µm</strong> | High Score: <strong>${highScore} µm</strong>`;
       startBtn.innerHTML = '<i class="fas fa-redo"></i> Play Again';
+      
+      // Show Nickname submission box if score > 0
+      const submitBox = document.getElementById('score-submit-box');
+      if (submitBox && score > 50) {
+        submitBox.style.display = 'flex';
+      }
+
       overlay.classList.remove('hidden');
     }
+
+    // ==========================================================================
+    // Online Leaderboard System (KVDB REST API + LocalStorage Fallback)
+    // ==========================================================================
+    const KVDB_ENDPOINT = 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/photon_leaderboard';
+    const leaderboardOverlay = document.getElementById('leaderboard-overlay');
+    const leaderboardToggleBtn = document.getElementById('leaderboard-toggle-btn');
+    const leaderboardCloseBtn = document.getElementById('leaderboard-close-btn');
+    const leaderboardList = document.getElementById('leaderboard-list');
+    const submitScoreBtn = document.getElementById('submit-score-btn');
+    const nicknameInput = document.getElementById('nickname-input');
+
+    let globalScores = [
+      { name: 'Dr. Park (Host)', score: 1250, date: '2026-08-04' },
+      { name: 'Optics Master', score: 840, date: '2026-08-04' },
+      { name: 'Photon Speed', score: 620, date: '2026-08-04' }
+    ];
+
+    async function fetchLeaderboard() {
+      try {
+        const response = await fetch(KVDB_ENDPOINT);
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            globalScores = data;
+          }
+        }
+      } catch (err) {
+        console.log('Using local/cached leaderboard:', err);
+        const cached = localStorage.getItem('photon_cached_leaderboard');
+        if (cached) {
+          try { globalScores = JSON.parse(cached); } catch (e) {}
+        }
+      }
+      renderLeaderboardUI();
+    }
+
+    async function saveLeaderboard() {
+      localStorage.setItem('photon_cached_leaderboard', JSON.stringify(globalScores));
+      try {
+        await fetch(KVDB_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(globalScores)
+        });
+      } catch (err) {
+        console.log('Saved to local cache:', err);
+      }
+    }
+
+    function renderLeaderboardUI() {
+      if (!leaderboardList) return;
+      leaderboardList.innerHTML = '';
+
+      if (globalScores.length === 0) {
+        leaderboardList.innerHTML = '<div class="leaderboard-item">No scores yet. Be the first!</div>';
+        return;
+      }
+
+      globalScores.sort((a, b) => b.score - a.score);
+      const topScores = globalScores.slice(0, 10);
+
+      topScores.forEach((item, index) => {
+        const rank = index + 1;
+        const rankBadge = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+        const div = document.createElement('div');
+        div.className = `leaderboard-item rank-${rank}`;
+        div.innerHTML = `
+          <div class="leaderboard-player">
+            <span class="leaderboard-rank-badge">${rankBadge}</span>
+            <span class="leaderboard-name">${escapeHtml(item.name)}</span>
+          </div>
+          <span class="leaderboard-score">${item.score} µm</span>
+        `;
+        leaderboardList.appendChild(div);
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    if (leaderboardToggleBtn && leaderboardOverlay && leaderboardCloseBtn) {
+      leaderboardToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fetchLeaderboard();
+        leaderboardOverlay.classList.remove('hidden');
+      });
+
+      leaderboardCloseBtn.addEventListener('click', () => {
+        leaderboardOverlay.classList.add('hidden');
+      });
+    }
+
+    if (submitScoreBtn && nicknameInput) {
+      submitScoreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const name = nicknameInput.value.trim() || 'Anonymous';
+        globalScores.push({
+          name: name,
+          score: score,
+          date: new Date().toISOString().slice(0, 10)
+        });
+
+        saveLeaderboard();
+        document.getElementById('score-submit-box').style.display = 'none';
+        leaderboardOverlay.classList.remove('hidden');
+        renderLeaderboardUI();
+      });
+    }
+
+    // Initial Leaderboard Fetch
+    fetchLeaderboard();
 
     function draw() {
       // Clear Background

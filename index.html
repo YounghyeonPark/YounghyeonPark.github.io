@@ -50,14 +50,35 @@
         <div class="game-container" id="game-container">
           <div class="game-header">
             <span class="game-title"><i class="fas fa-gamepad"></i> Photon Runner — Interactive Lab Game</span>
-            <span class="game-hint">Controls: Press <strong>Space</strong> or <strong>Tap Canvas</strong> to Jump</span>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <button id="leaderboard-toggle-btn" class="leaderboard-toggle-btn"><i class="fas fa-trophy"></i> Leaderboard</button>
+              <span class="game-hint">Controls: Press <strong>Space</strong> or <strong>Tap Canvas</strong> to Jump</span>
+            </div>
           </div>
           <canvas id="hero-game-canvas"></canvas>
+          
           <div class="game-overlay" id="game-overlay">
             <div class="game-overlay-content">
               <div id="game-status-title">Photon Runner 🔬</div>
               <div id="game-status-sub">Jump over optical lenses & sensor noise spikes!</div>
+              
+              <div id="score-submit-box" class="score-submit-box" style="display: none;">
+                <input type="text" id="nickname-input" class="nickname-input" placeholder="Your Nickname" maxlength="12">
+                <button id="submit-score-btn" class="btn btn-outline btn-sm"><i class="fas fa-paper-plane"></i> Submit</button>
+              </div>
+
               <button id="game-start-btn" class="btn btn-primary"><i class="fas fa-play"></i> Start Game</button>
+            </div>
+          </div>
+
+          <!-- Leaderboard Overlay Modal -->
+          <div class="leaderboard-overlay hidden" id="leaderboard-overlay">
+            <div class="leaderboard-header">
+              <span class="leaderboard-title"><i class="fas fa-trophy"></i> Global Leaderboard (Top 10)</span>
+              <button id="leaderboard-close-btn" class="leaderboard-close-btn">&times;</button>
+            </div>
+            <div id="leaderboard-list" class="leaderboard-list">
+              <!-- Dynamically populated -->
             </div>
           </div>
         </div>
