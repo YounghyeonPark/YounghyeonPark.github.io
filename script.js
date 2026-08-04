@@ -261,7 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateRunner() {
       runnerFrameCount++;
       const widthScale = Math.min(1.0, canvas.width / 900);
-      runnerSpeed = (runnerBaseSpeed + (runnerScore / 2500)) * widthScale;
+      // Increased Speed Acceleration Rate (3x Faster Speed Ramp up)
+      runnerSpeed = (runnerBaseSpeed + (runnerScore / 800)) * widthScale;
 
       runnerScore += Math.floor(runnerSpeed / 2);
       if (runnerScore > runnerHighScore) {
