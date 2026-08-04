@@ -135,8 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let runnerAnimId = null;
 
     let runnerGroundY = 205;
-    let runnerBaseSpeed = 12.0;
-    let runnerSpeed = 12.0;
+    let runnerBaseSpeed = 9.0;
+    let runnerSpeed = 9.0;
 
     const runnerPlayer = {
       x: 80,
@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let playerVY3D = 0;
     let isRoadsGrounded = true;
 
-    let roadSpeed = 16;
+    let roadSpeed = 11.0;
     let roadZOffset = 0;
     let roadTrack = [];
 
@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsRunning = true;
       roadsOver = false;
       roadsScore = 0;
-      roadSpeed = 16;
+      roadSpeed = 11.0;
       roadZOffset = 0;
       playerLane = 0;
       targetLane = 0;
