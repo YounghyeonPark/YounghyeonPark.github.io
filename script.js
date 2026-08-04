@@ -182,6 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetRunner() {
+      if (runnerAnimId) {
+        cancelAnimationFrame(runnerAnimId);
+        runnerAnimId = null;
+      }
       resizeRunnerCanvas();
       runnerRunning = true;
       runnerOver = false;
@@ -196,10 +200,15 @@ document.addEventListener('DOMContentLoaded', () => {
       overlay.classList.add('hidden');
     }
 
+    function startRunnerGame() {
+      resetRunner();
+      if (runnerAnimId) cancelAnimationFrame(runnerAnimId);
+      runnerAnimId = requestAnimationFrame(loopRunner);
+    }
+
     function jumpRunner() {
       if (!runnerRunning || runnerOver) {
-        resetRunner();
-        if (!runnerAnimId) loopRunner();
+        startRunnerGame();
         return;
       }
       if (runnerPlayer.isGrounded) {
@@ -416,6 +425,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetRoads() {
+      if (roadsAnimId) {
+        cancelAnimationFrame(roadsAnimId);
+        roadsAnimId = null;
+      }
       resizeRunnerCanvas();
       roadsRunning = true;
       roadsOver = false;
@@ -432,10 +445,15 @@ document.addEventListener('DOMContentLoaded', () => {
       overlay.classList.add('hidden');
     }
 
+    function startRoadsGame() {
+      resetRoads();
+      if (roadsAnimId) cancelAnimationFrame(roadsAnimId);
+      roadsAnimId = requestAnimationFrame(loopRoads);
+    }
+
     function jumpRoads() {
       if (!roadsRunning || roadsOver) {
-        resetRoads();
-        if (!roadsAnimId) loopRoads();
+        startRoadsGame();
         return;
       }
       if (isRoadsGrounded) {
@@ -670,8 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         activeGameMode = 'runner';
         gameHintText.innerHTML = 'Controls: Press <strong>Space</strong> or <strong>Tap</strong> to Jump';
-        resetRunner();
-        if (!runnerAnimId) loopRunner();
+        startRunnerGame();
       });
 
       selectSkyroadsBtn.addEventListener('click', (e) => {
@@ -682,8 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         activeGameMode = 'skyroads';
         gameHintText.innerHTML = 'Controls: <strong>←/→</strong> or <strong>Swipe</strong> to Switch Lane | <strong>Space</strong> to Jump';
-        resetRoads();
-        if (!roadsAnimId) loopRoads();
+        startRoadsGame();
       });
     }
 
