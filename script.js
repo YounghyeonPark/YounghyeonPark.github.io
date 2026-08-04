@@ -554,7 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fov = 280;
       const horizonY = canvas.height * 0.28;
       const cx = canvas.width / 2;
-      const cameraHeight = (canvas.height - 35 - horizonY) / (fov / 75);
+      const cameraHeight = 55;
       const segmentLength = 120;
 
       // Draw Starfield Background
@@ -633,17 +633,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // Draw 3D Player Spaceship/Probe (Positioned cleanly inside canvas)
-      const playerScale = fov / 160;
+      // Draw 3D Player Spaceship/Probe (Aligned 100% with 3D track slots)
+      const playerZ = 120;
+      const playerScale = fov / playerZ;
       const px = cx + (playerX3D * playerScale);
-      const py = (canvas.height - 35) + (playerY3D * 1.5);
+      const py = (horizonY + cameraHeight * playerScale) + (playerY3D * playerScale);
 
-      // Spaceship Body (Drawn with glow & clear margins)
+      // Spaceship Body (Drawn with glow & exact lane alignment)
       ctx.beginPath();
-      ctx.moveTo(px, py - 16);
-      ctx.lineTo(px + 16, py + 10);
-      ctx.lineTo(px, py + 4);
-      ctx.lineTo(px - 16, py + 10);
+      ctx.moveTo(px, py - 18 * playerScale);
+      ctx.lineTo(px + 16 * playerScale, py + 10 * playerScale);
+      ctx.lineTo(px, py + 4 * playerScale);
+      ctx.lineTo(px - 16 * playerScale, py + 10 * playerScale);
       ctx.closePath();
 
       ctx.fillStyle = '#ffffff';
