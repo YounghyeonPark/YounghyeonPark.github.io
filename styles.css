@@ -454,17 +454,17 @@ section {
 
 .leaderboard-overlay {
   position: absolute;
-  top: 42px;
-  left: 1rem;
-  right: 1rem;
-  bottom: 1rem;
-  background: rgba(11, 15, 25, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: var(--radius-sm);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 15, 25, 0.96);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  z-index: 20;
+  z-index: 100;
   transition: opacity var(--transition-fast);
 }
 
@@ -493,16 +493,25 @@ section {
 }
 
 .leaderboard-close-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: color var(--transition-fast);
+  transition: all var(--transition-fast);
+  line-height: 1;
 }
 
 .leaderboard-close-btn:hover {
-  color: var(--text-primary);
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #ef4444;
 }
 
 .leaderboard-list {

@@ -391,17 +391,48 @@ document.addEventListener('DOMContentLoaded', () => {
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    if (leaderboardToggleBtn && leaderboardOverlay && leaderboardCloseBtn) {
+    function closeLeaderboard() {
+      if (leaderboardOverlay) {
+        leaderboardOverlay.classList.add('hidden');
+      }
+    }
+
+    if (leaderboardToggleBtn && leaderboardOverlay) {
       leaderboardToggleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         fetchLeaderboard();
         leaderboardOverlay.classList.remove('hidden');
       });
+    }
 
-      leaderboardCloseBtn.addEventListener('click', () => {
-        leaderboardOverlay.classList.add('hidden');
+    if (leaderboardCloseBtn) {
+      leaderboardCloseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeLeaderboard();
       });
     }
+
+    const leaderboardCloseBtnBottom = document.getElementById('leaderboard-close-btn-bottom');
+    if (leaderboardCloseBtnBottom) {
+      leaderboardCloseBtnBottom.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeLeaderboard();
+      });
+    }
+
+    if (leaderboardOverlay) {
+      leaderboardOverlay.addEventListener('click', (e) => {
+        if (e.target === leaderboardOverlay) {
+          closeLeaderboard();
+        }
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && leaderboardOverlay && !leaderboardOverlay.classList.contains('hidden')) {
+        closeLeaderboard();
+      }
+    });
 
     if (submitScoreBtn && nicknameInput) {
       submitScoreBtn.addEventListener('click', (e) => {
