@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerRunning = true;
       runnerOver = false;
       runnerScore = 0;
-      runnerBaseSpeed = 9.0;
+      runnerBaseSpeed = 14.0;
       runnerFrameCount = 0;
       runnerObstacles = [];
       tunnelingCharges = 0;
@@ -261,8 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateRunner() {
       runnerFrameCount++;
       const widthScale = Math.min(1.0, canvas.width / 900);
-      // Increased Speed Acceleration Rate (3x Faster Speed Ramp up)
-      runnerSpeed = (runnerBaseSpeed + (runnerScore / 800)) * widthScale;
+      // High-Octane Speed Acceleration Rate (Hyper Speed Ramp)
+      runnerSpeed = (runnerBaseSpeed + (runnerScore / 350)) * widthScale;
 
       runnerScore += Math.floor(runnerSpeed / 2);
       if (runnerScore > runnerHighScore) {
