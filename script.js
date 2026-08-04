@@ -270,9 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerFrameCount++;
       const widthScale = Math.min(1.0, canvas.width / 900);
       // High-Octane Speed Acceleration Rate (Hyper Speed Ramp)
-      runnerSpeed = (runnerBaseSpeed + (runnerScore / 350)) * widthScale;
+      runnerSpeed = (runnerBaseSpeed + (runnerScore / 120)) * widthScale;
 
-      runnerScore += Math.floor(runnerSpeed / 2);
+      // Realistic distance score accumulation rate
+      runnerScore += Math.max(1, Math.floor(runnerSpeed / 6));
       if (runnerScore > runnerHighScore) {
         runnerHighScore = runnerScore;
         localStorage.setItem('photon_high_score', runnerHighScore);
