@@ -231,31 +231,39 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    let nextRunnerSpawnFrame = 0;
+
     function spawnRunnerObstacle() {
       const widthScale = Math.min(1.0, canvas.width / 900);
-      const types = ['lens', 'noise', 'aperture'];
+      const types = ['lens', 'noise', 'aperture', 'grating'];
       const chosenType = types[Math.floor(Math.random() * types.length)];
 
-      let obsWidth = 20 * widthScale;
-      let obsHeight = 35 * widthScale;
+      // Random dynamic height & width for obstacle variety
+      let randomH = (22 + Math.random() * 26) * widthScale;
+      let randomW = (14 + Math.random() * 20) * widthScale;
 
       if (chosenType === 'lens') {
-        obsWidth = 24 * widthScale;
-        obsHeight = 40 * widthScale;
+        randomH = (32 + Math.random() * 18) * widthScale;
+        randomW = (22 + Math.random() * 12) * widthScale;
       } else if (chosenType === 'noise') {
-        obsWidth = 16 * widthScale;
-        obsHeight = 30 * widthScale;
+        randomH = (26 + Math.random() * 22) * widthScale;
+        randomW = (12 + Math.random() * 14) * widthScale;
       }
 
       runnerObstacles.push({
         x: canvas.width + 20,
-        y: runnerGroundY - obsHeight,
-        width: obsWidth,
-        height: obsHeight,
+        y: runnerGroundY - randomH,
+        width: randomW,
+        height: randomH,
         type: chosenType,
         passed: false,
         tunneled: false
       });
+
+      // Schedule NEXT spawn at a truly random interval
+      const baseInterval = Math.max(35, Math.floor(75 / (widthScale || 1)));
+      const randomExtra = Math.floor(Math.random() * 65);
+      nextRunnerSpawnFrame = runnerFrameCount + baseInterval + randomExtra;
     }
 
     function updateRunner() {
@@ -291,9 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerPlayer.trail.push({ x: runnerPlayer.x, y: runnerPlayer.y });
       if (runnerPlayer.trail.length > 10) runnerPlayer.trail.shift();
 
-      // Spawn Obstacles
-      const minInterval = Math.max(50, Math.floor(100 / (widthScale || 1)));
-      if (runnerFrameCount % minInterval === 0 && Math.random() < 0.75) {
+      // Spawn Obstacles with dynamic random intervals
+      if (runnerFrameCount >= nextRunnerSpawnFrame) {
         spawnRunnerObstacle();
       }
 
@@ -554,9 +561,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // Smooth 3D Lane Transition
       playerX3D += (targetLane * baseSlotSpacing - playerX3D) * 0.38;
 
-      // Spawn new gates with generous distance (Interval > 550)
+      // Spawn new gates with dynamic random distance intervals (420 - 740 Z)
       gateSpawnTimer += gateSpeed;
-      if (gateSpawnTimer > 550) {
+      const randomGateInterval = 420 + Math.floor(Math.random() * 320);
+      if (gateSpawnTimer > randomGateInterval) {
         gateSpawnTimer = 0;
         spawnGate();
       }
