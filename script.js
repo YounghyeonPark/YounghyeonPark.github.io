@@ -578,8 +578,8 @@ document.addEventListener('DOMContentLoaded', () => {
               clearedGateCount++;
               roadsScore = clearedGateCount * 100;
 
-              // Grant 1 Superposition Wave Bonus every 5 cleared gates
-              if (clearedGateCount - lastBonusGateCount >= 5) {
+              // Grant 1 Superposition Wave Bonus every 500 cleared gates
+              if (clearedGateCount - lastBonusGateCount >= 500) {
                 superpositionCharges++;
                 lastBonusGateCount = clearedGateCount;
                 waveNotifyTimer = 90;
@@ -600,8 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
             clearedGateCount++;
             roadsScore = clearedGateCount * 100;
 
-            // Grant 1 Superposition Wave Bonus every 5 cleared gates
-            if (clearedGateCount - lastBonusGateCount >= 5) {
+            // Grant 1 Superposition Wave Bonus every 500 cleared gates
+            if (clearedGateCount - lastBonusGateCount >= 500) {
               superpositionCharges++;
               lastBonusGateCount = clearedGateCount;
               waveNotifyTimer = 90;
