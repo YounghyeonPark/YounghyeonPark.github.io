@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ------------------------------------------------------------------------
-    // GAME 2: Slot Gate 3D Engine (3D Wall Pass-Through - Single & Double Slots)
+    // GAME 2: Slot Gate 3D Engine (3D Wall Pass-Through & Superposition Wave)
     // ------------------------------------------------------------------------
     let roadsRunning = false;
     let roadsOver = false;
@@ -450,6 +450,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let gateSpeed = 6.5;
     let gates = []; // Active 3D Wall Gates
     let gateSpawnTimer = 0;
+
+    // Quantum Superposition Wave Bonus State
+    let superpositionCharges = 0;
+    let nextSuperpositionScore = 3000;
+    let waveNotifyTimer = 0;
+    let waveExplosionTimer = 0;
 
     // Gate Generator (Single-Slot or Double-Slot Openings)
     function spawnGate() {
@@ -493,6 +499,10 @@ document.addEventListener('DOMContentLoaded', () => {
       playerX3D = 0;
       gates = [];
       gateSpawnTimer = 0;
+      superpositionCharges = 0;
+      nextSuperpositionScore = 3000;
+      waveNotifyTimer = 0;
+      waveExplosionTimer = 0;
       // Initial gate
       spawnGate();
       overlay.classList.add('hidden');
@@ -524,6 +534,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Speed & Score Progression (Gentle curve)
       gateSpeed = 6.5 + Math.min(6.0, roadsScore / 1000);
 
+      // Check Quantum Superposition Wave Bonus (Every 3,000 Score)
+      if (roadsScore >= nextSuperpositionScore) {
+        superpositionCharges++;
+        nextSuperpositionScore += 3000;
+        waveNotifyTimer = 110; // ~1.8s banner notification
+      }
+
       // Dynamic responsive slot spacing for mobile vs desktop
       const playerZ = 120;
       const fov = 280;
@@ -549,9 +566,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gate.cleared && gate.z <= playerZ + 25 && gate.z >= playerZ - 25) {
           const playerSlotIndex = targetLane + 1; // 0, 1, or 2
           if (gate.slots[playerSlotIndex]) {
-            // Hit Solid Wall!
-            endRoads('Crashed Into 3D Wall Gate ⚡');
-            return;
+            if (superpositionCharges > 0) {
+              // --- QUANTUM SUPERPOSITION WAVE DESTROY ACTIVATED! ---
+              superpositionCharges--;
+              gate.cleared = true;
+              waveExplosionTimer = 45;
+
+              // Vaporize all solid walls in nearby range!
+              gates.forEach(g => {
+                if (Math.abs(g.z - playerZ) < 400) {
+                  g.slots = [false, false, false];
+                  g.cleared = true;
+                }
+              });
+
+              roadsScore += 100;
+              if (roadsScore > roadsHighScore) {
+                roadsHighScore = roadsScore;
+                localStorage.setItem('slotgate_high_score', roadsHighScore);
+              }
+            } else {
+              // Hit Solid Wall & Game Over
+              endRoads('Crashed Into 3D Wall Gate ⚡');
+              return;
+            }
           } else {
             // Successfully Passed Slot Gate!
             gate.cleared = true;
@@ -694,6 +732,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const py = horizonY + (wallHeight3D * 0.25) * playerScale;
       const photonRadius = Math.max(10, (canvas.width * 0.035) * (playerScale / 2.33));
 
+      // Quantum Superposition Wave Shockwave Aura (When active)
+      if (superpositionCharges > 0) {
+        ctx.beginPath();
+        ctx.arc(px, py, photonRadius * 2.8 + Math.sin(roadsScore * 0.15) * 4, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+        ctx.lineWidth = 2.5;
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = '#38bdf8';
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
       // Outer Volumetric Photon Glow Aura
       const outerGlow = ctx.createRadialGradient(px, py, Math.max(1, photonRadius * 0.2), px, py, Math.max(2, photonRadius * 2.4));
       outerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
@@ -733,11 +783,45 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fill();
       ctx.shadowBlur = 0;
 
+      // Quantum Wave Vaporizer Explosion FX
+      if (waveExplosionTimer > 0) {
+        waveExplosionTimer--;
+        ctx.beginPath();
+        ctx.arc(px, py, (45 - waveExplosionTimer) * 7.5, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(56, 189, 248, ${waveExplosionTimer / 45})`;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 22;
+        ctx.shadowColor = '#38bdf8';
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.font = 'bold 13px var(--font-heading)';
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('🌊 WALL VAPORIZED BY QUANTUM WAVE!', px - 110, py - 35);
+      }
+
       // HUD Text
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
       ctx.fillText(`Gates Cleared: ${Math.floor(roadsScore / 100)}`, 16, 26);
       ctx.fillText(`High: ${roadsHighScore}`, canvas.width - 130, 26);
+
+      // Superposition Wave Badge HUD
+      if (superpositionCharges > 0) {
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 11px "Fira Code", monospace';
+        ctx.fillText(`Superposition Wave: ${'🌊'.repeat(superpositionCharges)} (${superpositionCharges})`, 16, 44);
+      }
+
+      // Notification Banner
+      if (waveNotifyTimer > 0) {
+        waveNotifyTimer--;
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 13px var(--font-heading)';
+        ctx.textAlign = 'center';
+        ctx.fillText('🌊 QUANTUM SUPERPOSITION WAVE UNLOCKED! (+1 Wall Vaporizer)', canvas.width / 2, 40);
+        ctx.textAlign = 'left';
+      }
     }
 
     function drawRoadsStatic() { drawRoads(); }
