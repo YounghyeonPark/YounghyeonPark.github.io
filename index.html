@@ -92,6 +92,36 @@
             </div>
           </div>
 
+          <!-- Global Leaderboard Modal Overlay -->
+          <div id="leaderboard-modal" class="leaderboard-overlay hidden">
+            <div class="leaderboard-modal-content">
+              <div class="modal-header">
+                <h3><i class="fas fa-trophy text-amber"></i> Global Hall of Fame</h3>
+                <button id="close-leaderboard" class="close-modal-btn">&times;</button>
+              </div>
+              <div class="modal-body">
+                <table class="leaderboard-table">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Player</th>
+                      <th>Game</th>
+                      <th>Score</th>
+                    </tr>
+                  </thead>
+                  <tbody id="leaderboard-body">
+                    <tr>
+                      <td colspan="4" style="text-align: center; color: var(--text-secondary);">Loading Hall of Fame...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="modal-footer">
+                <button id="close-leaderboard-bottom-btn" class="btn btn-outline full-width">Close Leaderboard</button>
+              </div>
+            </div>
+          </div>
+
           <!-- Leaderboard Overlay Modal -->
           <div class="leaderboard-overlay hidden" id="leaderboard-overlay">
             <div class="leaderboard-header">
