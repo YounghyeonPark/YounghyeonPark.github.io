@@ -190,14 +190,28 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerRunning = true;
       runnerOver = false;
       runnerScore = 0;
-      runnerBaseSpeed = 12.0;
+      runnerBaseSpeed = 9.0;
       runnerFrameCount = 0;
       runnerObstacles = [];
+      tunnelingCharges = 0;
+      nextTunnelingScore = 10000;
+      tunnelingNotifyTimer = 0;
+      tunnelingEffectTimer = 0;
       runnerPlayer.y = runnerGroundY - runnerPlayer.radius;
       runnerPlayer.vy = 0;
       runnerPlayer.isGrounded = true;
       runnerPlayer.trail = [];
       overlay.classList.add('hidden');
+    }
+
+    function resizeRunnerCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width > 0) {
+        canvas.width = rect.width;
+        canvas.height = rect.height || 240;
+        runnerGroundY = canvas.height - 35;
+        runnerPlayer.x = Math.max(45, canvas.width * 0.1);
+      }
     }
 
     function startRunnerGame() {
@@ -218,34 +232,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function spawnRunnerObstacle() {
-      const types = ['lens', 'prism', 'noise'];
-      const type = types[Math.floor(Math.random() * types.length)];
-      let height = 26 + Math.random() * 20;
-      let width = 16 + Math.random() * 12;
+      const widthScale = Math.min(1.0, canvas.width / 900);
+      const types = ['lens', 'noise', 'aperture'];
+      const chosenType = types[Math.floor(Math.random() * types.length)];
+
+      let obsWidth = 20 * widthScale;
+      let obsHeight = 35 * widthScale;
+
+      if (chosenType === 'lens') {
+        obsWidth = 24 * widthScale;
+        obsHeight = 40 * widthScale;
+      } else if (chosenType === 'noise') {
+        obsWidth = 16 * widthScale;
+        obsHeight = 30 * widthScale;
+      }
 
       runnerObstacles.push({
         x: canvas.width + 20,
-        y: runnerGroundY - height,
-        width: width,
-        height: height,
-        type: type
+        y: runnerGroundY - obsHeight,
+        width: obsWidth,
+        height: obsHeight,
+        type: chosenType,
+        passed: false,
+        tunneled: false
       });
     }
 
     function updateRunner() {
       runnerFrameCount++;
-      runnerScore += 2;
+      const widthScale = Math.min(1.0, canvas.width / 900);
+      runnerSpeed = (runnerBaseSpeed + (runnerScore / 2500)) * widthScale;
+
+      runnerScore += Math.floor(runnerSpeed / 2);
       if (runnerScore > runnerHighScore) {
         runnerHighScore = runnerScore;
         localStorage.setItem('photon_high_score', runnerHighScore);
       }
 
-      if (runnerFrameCount % 200 === 0 && runnerBaseSpeed < 18.0) {
-        runnerBaseSpeed += 0.5;
-        const widthScale = Math.min(1.2, Math.max(0.42, canvas.width / 900));
-        runnerSpeed = runnerBaseSpeed * widthScale;
+      // Check Quantum Tunneling Bonus Threshold (Every 10,000 Score)
+      if (runnerScore >= nextTunnelingScore) {
+        tunnelingCharges++;
+        nextTunnelingScore += 10000;
+        tunnelingNotifyTimer = 110; // ~1.8 seconds notification
       }
 
+      // Gravity & Player Physics
       runnerPlayer.vy += runnerPlayer.gravity;
       runnerPlayer.y += runnerPlayer.vy;
 
@@ -255,31 +286,44 @@ document.addEventListener('DOMContentLoaded', () => {
         runnerPlayer.isGrounded = true;
       }
 
-      runnerPlayer.trail.push({ x: runnerPlayer.x, y: runnerPlayer.y, alpha: 1 });
-      if (runnerPlayer.trail.length > 12) runnerPlayer.trail.shift();
-      runnerPlayer.trail.forEach(t => t.alpha -= 0.07);
+      // Trail FX
+      runnerPlayer.trail.push({ x: runnerPlayer.x, y: runnerPlayer.y });
+      if (runnerPlayer.trail.length > 10) runnerPlayer.trail.shift();
 
-      if (runnerFrameCount % Math.max(20, Math.floor(100 / (runnerSpeed * 0.15))) === 0) {
-        if (Math.random() > 0.2) {
-          spawnRunnerObstacle();
-        }
+      // Spawn Obstacles
+      const minInterval = Math.max(50, Math.floor(100 / (widthScale || 1)));
+      if (runnerFrameCount % minInterval === 0 && Math.random() < 0.75) {
+        spawnRunnerObstacle();
       }
 
+      // Move & Check Obstacles
       for (let i = runnerObstacles.length - 1; i >= 0; i--) {
         const obs = runnerObstacles[i];
         obs.x -= runnerSpeed;
 
+        // Collision Check (Circle vs AABB)
         const closestX = Math.max(obs.x, Math.min(runnerPlayer.x, obs.x + obs.width));
         const closestY = Math.max(obs.y, Math.min(runnerPlayer.y, obs.y + obs.height));
-        const distX = runnerPlayer.x - closestX;
-        const distY = runnerPlayer.y - closestY;
-        const distance = Math.sqrt(distX * distX + distY * distY);
 
-        if (distance < runnerPlayer.radius - 2) {
-          endRunner();
+        const distanceX = runnerPlayer.x - closestX;
+        const distanceY = runnerPlayer.y - closestY;
+        const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
+
+        if (distanceSquared < (runnerPlayer.radius * runnerPlayer.radius) && !obs.tunneled) {
+          if (tunnelingCharges > 0) {
+            // --- QUANTUM TUNNELING EFFECT ACTIVATED! ---
+            tunnelingCharges--;
+            obs.tunneled = true; // Mark as tunneled so it won't trigger again
+            tunnelingEffectTimer = 40;
+            tunnelingEffectPos = { x: runnerPlayer.x, y: runnerPlayer.y };
+          } else {
+            // Collision & Game Over
+            endRunner();
+            return;
+          }
         }
 
-        if (obs.x + obs.width < -30) {
+        if (obs.x + obs.width < 0) {
           runnerObstacles.splice(i, 1);
         }
       }
@@ -294,61 +338,77 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       statusTitle.textContent = 'Photon Runner Over 🔬';
-      statusSub.innerHTML = `Distance: <strong>${runnerScore} µm</strong> | High Score: <strong>${runnerHighScore} µm</strong>`;
+      statusSub.innerHTML = `Detector Noise Spike Hit!<br>Score: <strong>${runnerScore} ly</strong> | High: <strong>${runnerHighScore} ly</strong>`;
       startBtn.innerHTML = '<i class="fas fa-redo"></i> Play Again';
-      
+
       const submitBox = document.getElementById('score-submit-box');
-      if (submitBox && runnerScore > 50) submitBox.style.display = 'flex';
+      if (submitBox) submitBox.style.display = 'flex';
+      
+      resizeRunnerCanvas();
       overlay.classList.remove('hidden');
     }
 
     function drawRunner() {
-      ctx.fillStyle = '#050811';
+      // Clear Background
+      ctx.fillStyle = '#0b0f19';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Ground Line
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, runnerGroundY);
       ctx.lineTo(canvas.width, runnerGroundY);
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
       ctx.stroke();
 
-      runnerPlayer.trail.forEach(t => {
-        if (t.alpha > 0) {
-          ctx.beginPath();
-          ctx.arc(t.x, t.y, runnerPlayer.radius * 0.6, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(56, 189, 248, ${t.alpha * 0.45})`;
-          ctx.fill();
-        }
-      });
+      // Draw Trail
+      for (let i = 0; i < runnerPlayer.trail.length; i++) {
+        const p = runnerPlayer.trail[i];
+        const alpha = (i / runnerPlayer.trail.length) * 0.4;
+        ctx.fillStyle = tunnelingCharges > 0 ? `rgba(168, 85, 247, ${alpha})` : `rgba(56, 189, 248, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, runnerPlayer.radius * (i / runnerPlayer.trail.length), 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw Player Photon (With Quantum Tunneling Aura if active)
+      if (tunnelingCharges > 0) {
+        // Quantum Superposition Wave Aura
+        ctx.beginPath();
+        ctx.arc(runnerPlayer.x, runnerPlayer.y, runnerPlayer.radius + 6 + Math.sin(runnerFrameCount * 0.2) * 3, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#c084fc';
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
 
       ctx.beginPath();
       ctx.arc(runnerPlayer.x, runnerPlayer.y, runnerPlayer.radius, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#38bdf8';
+      ctx.fillStyle = tunnelingCharges > 0 ? '#c084fc' : '#ffffff';
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = tunnelingCharges > 0 ? '#a855f7' : '#38bdf8';
       ctx.fill();
       ctx.shadowBlur = 0;
 
+      // Draw Obstacles
       runnerObstacles.forEach(obs => {
         if (obs.type === 'lens') {
-          drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
-          ctx.fillStyle = 'rgba(20, 184, 166, 0.4)';
-          ctx.strokeStyle = '#14b8a6';
+          ctx.fillStyle = obs.tunneled ? 'rgba(56, 189, 248, 0.3)' : 'rgba(56, 189, 248, 0.85)';
+          ctx.strokeStyle = '#0284c7';
           ctx.lineWidth = 1.5;
+          drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 4);
           ctx.fill();
           ctx.stroke();
-        } else if (obs.type === 'prism') {
+        } else if (obs.type === 'noise') {
+          ctx.fillStyle = obs.tunneled ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.85)';
           ctx.beginPath();
-          ctx.moveTo(obs.x + obs.width / 2, obs.y);
+          ctx.moveTo(obs.x, obs.y + obs.height);
+          ctx.lineTo(obs.x + obs.width / 2, obs.y);
           ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
-          ctx.lineTo(obs.x, obs.y + obs.height);
           ctx.closePath();
-          ctx.fillStyle = 'rgba(168, 85, 247, 0.4)';
-          ctx.strokeStyle = '#a855f7';
-          ctx.lineWidth = 1.5;
           ctx.fill();
-          ctx.stroke();
         } else {
           ctx.beginPath();
           ctx.rect(obs.x, obs.y, obs.width, obs.height);
