@@ -552,9 +552,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const fov = 280;
-      const horizonY = canvas.height * 0.32;
+      const horizonY = canvas.height * 0.28;
       const cx = canvas.width / 2;
-      const cameraHeight = 120;
+      const cameraHeight = (canvas.height - 35 - horizonY) / (fov / 75);
       const segmentLength = 120;
 
       // Draw Starfield Background
@@ -633,21 +633,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // Draw 3D Player Spaceship/Probe
-      const playerScale = fov / 120;
+      // Draw 3D Player Spaceship/Probe (Positioned cleanly inside canvas)
+      const playerScale = fov / 160;
       const px = cx + (playerX3D * playerScale);
-      const py = horizonY + (cameraHeight + playerY3D) * playerScale;
+      const py = (canvas.height - 35) + (playerY3D * 1.5);
 
-      // Spaceship Body
+      // Spaceship Body (Drawn with glow & clear margins)
       ctx.beginPath();
-      ctx.moveTo(px, py - 18);
-      ctx.lineTo(px + 18, py + 12);
-      ctx.lineTo(px, py + 6);
-      ctx.lineTo(px - 18, py + 12);
+      ctx.moveTo(px, py - 16);
+      ctx.lineTo(px + 16, py + 10);
+      ctx.lineTo(px, py + 4);
+      ctx.lineTo(px - 16, py + 10);
       ctx.closePath();
 
       ctx.fillStyle = '#ffffff';
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 12;
       ctx.shadowColor = '#38bdf8';
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
@@ -655,11 +655,11 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // HUD Text
+      // HUD Text (Safe Padding)
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText(`Distance: ${roadsScore} ly`, 16, 22);
-      ctx.fillText(`High: ${roadsHighScore} ly`, canvas.width - 120, 22);
+      ctx.fillText(`Distance: ${roadsScore} ly`, 16, 26);
+      ctx.fillText(`High: ${roadsHighScore} ly`, canvas.width - 130, 26);
     }
 
     function drawRoadsStatic() { drawRoads(); }
