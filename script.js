@@ -127,6 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let animationFrameId = null;
 
     let groundY = 205;
+    let baseSpeed = 12.0;
+    let gameSpeed = 12.0;
+
     const player = {
       x: 80,
       y: 0,
@@ -140,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let obstacles = [];
     let frameCount = 0;
-    let gameSpeed = 12.0;
 
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
@@ -148,6 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.width = rect.width;
         canvas.height = rect.height || 240;
         groundY = canvas.height - 35;
+
+        // Scale player X position relative to screen width
+        player.x = Math.max(45, canvas.width * 0.1);
+
+        // Responsive Speed: Scale speed by width so travel time is equal on mobile & desktop!
+        const widthScale = Math.min(1.2, Math.max(0.42, canvas.width / 900));
+        gameSpeed = baseSpeed * widthScale;
+
         if (!gameRunning) {
           player.y = groundY - player.radius;
           drawStatic();
@@ -173,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
       gameRunning = true;
       gameOver = false;
       score = 0;
-      gameSpeed = 12.0;
+      baseSpeed = 12.0;
       frameCount = 0;
       obstacles = [];
       player.y = groundY - player.radius;
@@ -242,8 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('photon_high_score', highScore);
       }
 
-      if (frameCount % 200 === 0 && gameSpeed < 18.0) {
-        gameSpeed += 0.5;
+      if (frameCount % 200 === 0 && baseSpeed < 18.0) {
+        baseSpeed += 0.5;
+        const widthScale = Math.min(1.2, Math.max(0.42, canvas.width / 900));
+        gameSpeed = baseSpeed * widthScale;
       }
 
       // Player Movement
