@@ -45,24 +45,26 @@
   <!-- Hero Section -->
   <section id="about" class="hero">
     <div class="container">
-      <div class="hero-grid">
-        <div class="hero-content">
-          <!-- Mini Game: Photon Runner -->
-          <div class="game-container" id="game-container">
-            <div class="game-header">
-              <span class="game-title"><i class="fas fa-gamepad"></i> Photon Runner</span>
-              <span class="game-hint">Press <strong>Space</strong> / <strong>Tap</strong> to Jump</span>
-            </div>
-            <canvas id="hero-game-canvas" width="600" height="150"></canvas>
-            <div class="game-overlay" id="game-overlay">
-              <div class="game-overlay-content">
-                <div id="game-status-title">Photon Runner 🔬</div>
-                <div id="game-status-sub">Jump over optical lenses & sensor noise!</div>
-                <button id="game-start-btn" class="btn btn-primary btn-sm"><i class="fas fa-play"></i> Start Game</button>
-              </div>
+      <!-- Spacious Top Game Banner -->
+      <div class="hero-game-wrapper">
+        <div class="game-container" id="game-container">
+          <div class="game-header">
+            <span class="game-title"><i class="fas fa-gamepad"></i> Photon Runner — Interactive Lab Game</span>
+            <span class="game-hint">Controls: Press <strong>Space</strong> or <strong>Tap Canvas</strong> to Jump</span>
+          </div>
+          <canvas id="hero-game-canvas"></canvas>
+          <div class="game-overlay" id="game-overlay">
+            <div class="game-overlay-content">
+              <div id="game-status-title">Photon Runner 🔬</div>
+              <div id="game-status-sub">Jump over optical lenses & sensor noise spikes!</div>
+              <button id="game-start-btn" class="btn btn-primary"><i class="fas fa-play"></i> Start Game</button>
             </div>
           </div>
+        </div>
+      </div>
 
+      <div class="hero-grid">
+        <div class="hero-content">
           <div class="hero-badge">
             <span class="pulse-dot"></span>
             Director @ Curi Bio | Ph.D. in ECE
