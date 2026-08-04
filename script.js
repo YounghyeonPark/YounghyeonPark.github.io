@@ -612,68 +612,78 @@ document.addEventListener('DOMContentLoaded', () => {
           ctx.fill();
           ctx.stroke();
 
-          // 3D Standing Laser Barrier Block (Upright 3D Wall Rushing at Player)
+          // 3D Standing Solid Laser Barrier Cuboid (Explicit 3D Geometry & Shading)
           if (seg.obstacle === (laneIdx - 1)) {
-            const wallH = 50; // Vertical height of 3D wall
+            const wallH = 65; // Height of 3D block
 
+            const x1_left = cx + (lane.xOffset - 52) * scale1;
+            const x1_right = cx + (lane.xOffset + 52) * scale1;
+            const x2_left = cx + (lane.xOffset - 52) * scale2;
+            const x2_right = cx + (lane.xOffset + 52) * scale2;
+
+            const y1_bot = y1;
             const y1_top = y1 - wallH * scale1;
+            const y2_bot = y2;
             const y2_top = y2 - wallH * scale2;
 
-            const x1a_inner = cx + (lane.xOffset - 55) * scale1;
-            const x1b_inner = cx + (lane.xOffset + 55) * scale1;
-            const x2a_inner = cx + (lane.xOffset - 55) * scale2;
-            const x2b_inner = cx + (lane.xOffset + 55) * scale2;
-
-            // 1. Top Roof Quad
+            // 1. Top Roof Face (Bright Top Lighting)
             ctx.beginPath();
-            ctx.moveTo(x1a_inner, y1_top);
-            ctx.lineTo(x1b_inner, y1_top);
-            ctx.lineTo(x2b_inner, y2_top);
-            ctx.lineTo(x2a_inner, y2_top);
+            ctx.moveTo(x1_left, y1_top);
+            ctx.lineTo(x1_right, y1_top);
+            ctx.lineTo(x2_right, y2_top);
+            ctx.lineTo(x2_left, y2_top);
             ctx.closePath();
-            ctx.fillStyle = 'rgba(255, 90, 90, 0.8)';
-            ctx.strokeStyle = '#ff6b6b';
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.85)';
+            ctx.strokeStyle = '#ff8888';
             ctx.lineWidth = 1.5;
             ctx.fill();
             ctx.stroke();
 
-            // 2. Front Face (Facing Player Directly)
+            // 2. Left Side Face (3D Depth Shadow)
+            if (laneIdx - 1 <= 0) {
+              ctx.beginPath();
+              ctx.moveTo(x1_left, y1_bot);
+              ctx.lineTo(x1_left, y1_top);
+              ctx.lineTo(x2_left, y2_top);
+              ctx.lineTo(x2_left, y2_bot);
+              ctx.closePath();
+              ctx.fillStyle = 'rgba(150, 20, 20, 0.9)';
+              ctx.strokeStyle = '#ff4444';
+              ctx.lineWidth = 1.5;
+              ctx.fill();
+              ctx.stroke();
+            }
+
+            // 3. Right Side Face (3D Depth Shadow)
+            if (laneIdx - 1 >= 0) {
+              ctx.beginPath();
+              ctx.moveTo(x1_right, y1_bot);
+              ctx.lineTo(x1_right, y1_top);
+              ctx.lineTo(x2_right, y2_top);
+              ctx.lineTo(x2_right, y2_bot);
+              ctx.closePath();
+              ctx.fillStyle = 'rgba(150, 20, 20, 0.9)';
+              ctx.strokeStyle = '#ff4444';
+              ctx.lineWidth = 1.5;
+              ctx.fill();
+              ctx.stroke();
+            }
+
+            // 4. Front Face (Bright Neon Laser Front Facing Player)
             ctx.beginPath();
-            ctx.moveTo(x1a_inner, y1);
-            ctx.lineTo(x1b_inner, y1);
-            ctx.lineTo(x1b_inner, y1_top);
-            ctx.lineTo(x1a_inner, y1_top);
+            ctx.moveTo(x1_left, y1_bot);
+            ctx.lineTo(x1_right, y1_bot);
+            ctx.lineTo(x1_right, y1_top);
+            ctx.lineTo(x1_left, y1_top);
             ctx.closePath();
             ctx.fillStyle = 'rgba(239, 68, 68, 0.95)';
             ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.5;
-            ctx.shadowBlur = 10;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 12;
             ctx.shadowColor = '#ef4444';
             ctx.fill();
             ctx.stroke();
             ctx.shadowBlur = 0;
-
-            // 3. Left Side Face
-            ctx.beginPath();
-            ctx.moveTo(x1a, y1);
-            ctx.lineTo(x1a_inner, y1_top);
-            ctx.lineTo(x2a_inner, y2_top);
-            ctx.lineTo(x2a, y2);
-            ctx.closePath();
-            ctx.fillStyle = 'rgba(185, 28, 28, 0.85)';
-            ctx.fill();
-            ctx.stroke();
-
-            // 4. Right Side Face
-            ctx.beginPath();
-            ctx.moveTo(x1b, y1);
-            ctx.lineTo(x1b_inner, y1_top);
-            ctx.lineTo(x2b_inner, y2_top);
-            ctx.lineTo(x2b, y2);
-            ctx.closePath();
-            ctx.fillStyle = 'rgba(185, 28, 28, 0.85)';
-            ctx.fill();
-            ctx.stroke();
           }
         });
       }
