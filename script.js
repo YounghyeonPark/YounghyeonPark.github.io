@@ -578,8 +578,8 @@ document.addEventListener('DOMContentLoaded', () => {
               clearedGateCount++;
               roadsScore = clearedGateCount * 100;
 
-              // Grant 1 Superposition Wave Bonus every 500 cleared gates
-              if (clearedGateCount - lastBonusGateCount >= 500) {
+              // Grant 1 Superposition Wave Bonus every 100 cleared gates
+              if (clearedGateCount - lastBonusGateCount >= 100) {
                 superpositionCharges++;
                 lastBonusGateCount = clearedGateCount;
                 waveNotifyTimer = 90;
@@ -600,8 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
             clearedGateCount++;
             roadsScore = clearedGateCount * 100;
 
-            // Grant 1 Superposition Wave Bonus every 500 cleared gates
-            if (clearedGateCount - lastBonusGateCount >= 500) {
+            // Grant 1 Superposition Wave Bonus every 100 cleared gates
+            if (clearedGateCount - lastBonusGateCount >= 100) {
               superpositionCharges++;
               lastBonusGateCount = clearedGateCount;
               waveNotifyTimer = 90;
@@ -630,11 +630,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       statusTitle.textContent = 'Slot Gate 3D Over 🚀';
-      statusSub.innerHTML = `${reason}<br>Score: <strong>${roadsScore}</strong> | High: <strong>${roadsHighScore}</strong>`;
+      statusSub.innerHTML = `${reason}<br>Gates Cleared: <strong>${clearedGateCount}</strong> (${roadsScore} pts) | High: <strong>${roadsHighScore} pts</strong>`;
       startBtn.innerHTML = '<i class="fas fa-redo"></i> Launch Again';
 
       const submitBox = document.getElementById('score-submit-box');
       if (submitBox && roadsScore > 50) submitBox.style.display = 'flex';
+      
+      resizeRunnerCanvas();
       overlay.classList.remove('hidden');
     }
 
@@ -816,8 +818,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // HUD Text
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText(`Gates Cleared: ${Math.floor(roadsScore / 100)}`, 16, 26);
-      ctx.fillText(`High: ${roadsHighScore}`, canvas.width - 130, 26);
+      ctx.fillText(`Gates Cleared: ${clearedGateCount} (${roadsScore} pts)`, 16, 26);
+      ctx.fillText(`High: ${roadsHighScore} pts`, canvas.width - 145, 26);
 
       // Superposition Wave Badge HUD
       if (superpositionCharges > 0) {
