@@ -376,56 +376,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ------------------------------------------------------------------------
-    // GAME 2: Pseudo-3D Slot Roads Engine (Pure 3D Lane Weaver - No Jump)
+    // GAME 2: Slot Gate 3D Engine (3D Wall Pass-Through - Single & Double Slots)
     // ------------------------------------------------------------------------
     let roadsRunning = false;
     let roadsOver = false;
     let roadsScore = 0;
-    let roadsHighScore = parseInt(localStorage.getItem('slotroads_high_score') || '0', 10);
+    let roadsHighScore = parseInt(localStorage.getItem('slotgate_high_score') || '0', 10);
     let roadsAnimId = null;
 
     let targetLane = 0; // -1: Left, 0: Center, 1: Right
     let playerX3D = 0;
-    let playerY3D = 0;
 
-    let roadSpeed = 11.0;
-    let roadZOffset = 0;
-    let roadTrack = [];
+    let gateSpeed = 10.0;
+    let gates = []; // Active 3D Wall Gates
+    let gateSpawnTimer = 0;
 
-    function initRoadTrack() {
-      roadTrack = [];
-      // Generate 120 track segments with 1-2 open slots
-      for (let i = 0; i < 150; i++) {
-        if (i < 12) {
-          // Safe starting zone
-          roadTrack.push({ left: true, center: true, right: true, obstacle: null });
-        } else {
-          // Random open lanes & barriers
-          let left = Math.random() > 0.35;
-          let center = Math.random() > 0.35;
-          let right = Math.random() > 0.35;
+    // Gate Generator (Single-Slot or Double-Slot Openings)
+    function spawnGate() {
+      // Choose opening type: 60% Single-Slot Open, 40% Double-Slot Open
+      const isDoubleSlot = Math.random() < 0.4;
+      let slots = [true, true, true]; // true = solid wall, false = open pass-through slot
 
-          // Ensure at least 1 lane is open, and at most 2 lanes open (so there's always a gap to weave into!)
-          if (!left && !center && !right) {
-            const openIdx = Math.floor(Math.random() * 3);
-            if (openIdx === 0) left = true;
-            else if (openIdx === 1) center = true;
-            else right = true;
-          }
-
-          let obstacle = null;
-          if (Math.random() < 0.35) {
-            obstacle = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
-          }
-
-          roadTrack.push({
-            left: left,
-            center: center,
-            right: right,
-            obstacle: obstacle
-          });
-        }
+      if (isDoubleSlot) {
+        // 2 slots open, 1 wall
+        const wallIdx = Math.floor(Math.random() * 3);
+        slots[0] = (wallIdx === 0);
+        slots[1] = (wallIdx === 1);
+        slots[2] = (wallIdx === 2);
+      } else {
+        // 1 slot open, 2 walls
+        const openIdx = Math.floor(Math.random() * 3);
+        slots[0] = (openIdx !== 0);
+        slots[1] = (openIdx !== 1);
+        slots[2] = (openIdx !== 2);
       }
+
+      gates.push({
+        z: 900,
+        slots: slots,
+        isDouble: isDoubleSlot,
+        cleared: false
+      });
     }
 
     function resetRoads() {
@@ -437,12 +428,13 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsRunning = true;
       roadsOver = false;
       roadsScore = 0;
-      roadSpeed = 11.0;
-      roadZOffset = 0;
+      gateSpeed = 10.0;
       targetLane = 0;
       playerX3D = 0;
-      playerY3D = 0;
-      initRoadTrack();
+      gates = [];
+      gateSpawnTimer = 0;
+      // Initial gates
+      spawnGate();
       overlay.classList.add('hidden');
     }
 
@@ -469,48 +461,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRoads() {
-      roadsScore += 2;
-      if (roadsScore > roadsHighScore) {
-        roadsHighScore = roadsScore;
-        localStorage.setItem('slotroads_high_score', roadsHighScore);
+      // Speed & Score Progression
+      gateSpeed = 10.0 + Math.min(10.0, roadsScore / 400);
+
+      // Smooth 3D Lane Transition
+      playerX3D += (targetLane * 140 - playerX3D) * 0.30;
+
+      // Spawn new gates periodically
+      gateSpawnTimer += gateSpeed;
+      if (gateSpawnTimer > 280) {
+        gateSpawnTimer = 0;
+        spawnGate();
       }
 
-      // Smooth 3D lane transition
-      playerX3D += (targetLane * 140 - playerX3D) * 0.28;
+      // Move gates towards player (Z: 900 -> 120)
+      const playerZ = 120;
 
-      // Speed progression
-      roadZOffset += roadSpeed;
-      const segmentLength = 120;
-      const currentSegmentIndex = Math.floor(roadZOffset / segmentLength);
+      for (let i = gates.length - 1; i >= 0; i--) {
+        const gate = gates[i];
+        gate.z -= gateSpeed;
 
-      if (currentSegmentIndex >= roadTrack.length - 15) {
-        for (let i = 0; i < 40; i++) {
-          let left = Math.random() > 0.35;
-          let center = Math.random() > 0.35;
-          let right = Math.random() > 0.35;
-          if (!left && !center && !right) center = true;
-
-          roadTrack.push({
-            left: left,
-            center: center,
-            right: right,
-            obstacle: Math.random() < 0.35 ? Math.floor(Math.random() * 3) - 1 : null
-          });
-        }
-      }
-
-      // Check collision with track gaps and 3D laser barriers
-      const currentSeg = roadTrack[currentSegmentIndex];
-      if (currentSeg) {
-        let currentLaneKey = targetLane === -1 ? 'left' : targetLane === 0 ? 'center' : 'right';
-        if (!currentSeg[currentLaneKey]) {
-          endRoads('Fell Into Space Gap 🌌');
-          return;
+        // Check Collision when gate reaches player Z plane
+        if (!gate.cleared && gate.z <= playerZ + 20 && gate.z >= playerZ - 20) {
+          const playerSlotIndex = targetLane + 1; // 0, 1, or 2
+          if (gate.slots[playerSlotIndex]) {
+            // Hit Solid Wall!
+            endRoads('Crashed Into 3D Wall Gate ⚡');
+            return;
+          } else {
+            // Successfully Passed Slot Gate!
+            gate.cleared = true;
+            roadsScore += 100;
+            if (roadsScore > roadsHighScore) {
+              roadsHighScore = roadsScore;
+              localStorage.setItem('slotgate_high_score', roadsHighScore);
+            }
+          }
         }
 
-        if (currentSeg.obstacle === targetLane) {
-          endRoads('Crashed into 3D Laser Wall ⚡');
-          return;
+        // Remove gates past player
+        if (gate.z < 60) {
+          gates.splice(i, 1);
         }
       }
     }
@@ -523,8 +514,8 @@ document.addEventListener('DOMContentLoaded', () => {
         roadsAnimId = null;
       }
 
-      statusTitle.textContent = 'Slot Roads Over 🚀';
-      statusSub.innerHTML = `${reason}<br>Score: <strong>${roadsScore} ly</strong> | High: <strong>${roadsHighScore} ly</strong>`;
+      statusTitle.textContent = 'Slot Gate 3D Over 🚀';
+      statusSub.innerHTML = `${reason}<br>Score: <strong>${roadsScore}</strong> | High: <strong>${roadsHighScore}</strong>`;
       startBtn.innerHTML = '<i class="fas fa-redo"></i> Launch Again';
 
       const submitBox = document.getElementById('score-submit-box');
@@ -533,155 +524,112 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawRoads() {
-      // Background Synthwave Space
-      ctx.fillStyle = '#050714';
+      // Background Synthwave Deep Space (No ground road track lines)
+      ctx.fillStyle = '#060814';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const fov = 280;
-      const horizonY = canvas.height * 0.28;
+      const horizonY = canvas.height * 0.42;
       const cx = canvas.width / 2;
-      const cameraHeight = 55;
-      const segmentLength = 120;
 
       // Draw Starfield Background
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-      for (let i = 0; i < 20; i++) {
-        let sx = (Math.sin(i * 99 + roadZOffset * 0.001) * 0.5 + 0.5) * canvas.width;
-        let sy = (Math.cos(i * 33) * 0.5 + 0.5) * horizonY;
+      for (let i = 0; i < 45; i++) {
+        const sx = (Math.sin(i * 99 + roadsScore * 0.01) * 0.5 + 0.5) * canvas.width;
+        const sy = (Math.cos(i * 33 + roadsScore * 0.01) * 0.5 + 0.5) * horizonY;
         ctx.fillRect(sx, sy, 1.5, 1.5);
       }
 
-      // Draw 3D Track Slots
-      const visibleSegments = 25;
-      const startIdx = Math.floor(roadZOffset / segmentLength);
+      // Draw Distant Horizon Glow Line
+      ctx.beginPath();
+      ctx.moveTo(0, horizonY);
+      ctx.lineTo(canvas.width, horizonY);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-      for (let i = visibleSegments; i >= 0; i--) {
-        const segIdx = startIdx + i;
-        const seg = roadTrack[segIdx];
-        if (!seg) continue;
+      // Sort and Draw 3D Wall Gates from Far to Near
+      const sortedGates = [...gates].sort((a, b) => b.z - a.z);
 
-        const z1 = (segIdx * segmentLength) - roadZOffset + 80;
-        const z2 = z1 + segmentLength;
+      const slotOffsets = [-140, 0, 140];
+      const slotWidth = 120;
+      const wallHeight3D = 180;
 
-        if (z1 <= 10) continue;
+      sortedGates.forEach(gate => {
+        const scale = fov / Math.max(30, gate.z);
+        const yTop = horizonY - (wallHeight3D * 0.5) * scale;
+        const yBot = horizonY + (wallHeight3D * 0.5) * scale;
 
-        const scale1 = fov / z1;
-        const scale2 = fov / z2;
+        // Draw the 3D Wall Gate across the 3 slots
+        for (let s = 0; s < 3; s++) {
+          const slotXOffset = slotOffsets[s];
+          const xLeft = cx + (slotXOffset - slotWidth / 2) * scale;
+          const xRight = cx + (slotXOffset + slotWidth / 2) * scale;
+          const isSolid = gate.slots[s];
 
-        const y1 = horizonY + cameraHeight * scale1;
-        const y2 = horizonY + cameraHeight * scale2;
-
-        const lanes = [
-          { key: 'left', xOffset: -140 },
-          { key: 'center', xOffset: 0 },
-          { key: 'right', xOffset: 140 }
-        ];
-
-        lanes.forEach((lane, laneIdx) => {
-          if (!seg[lane.key]) return; // Gap / Hole
-
-          const x1a = cx + (lane.xOffset - 60) * scale1;
-          const x1b = cx + (lane.xOffset + 60) * scale1;
-          const x2a = cx + (lane.xOffset - 60) * scale2;
-          const x2b = cx + (lane.xOffset + 60) * scale2;
-
-          ctx.beginPath();
-          ctx.moveTo(x1a, y1);
-          ctx.lineTo(x1b, y1);
-          ctx.lineTo(x2b, y2);
-          ctx.lineTo(x2a, y2);
-          ctx.closePath();
-
-          ctx.fillStyle = (segIdx % 2 === 0) ? 'rgba(56, 189, 248, 0.15)' : 'rgba(20, 184, 166, 0.15)';
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 1;
-          ctx.fill();
-          ctx.stroke();
-
-          // 3D Standing Solid Laser Barrier Cuboid (Explicit 3D Geometry & Shading)
-          if (seg.obstacle === (laneIdx - 1)) {
-            const wallH = 65; // Height of 3D block
-
-            const x1_left = cx + (lane.xOffset - 52) * scale1;
-            const x1_right = cx + (lane.xOffset + 52) * scale1;
-            const x2_left = cx + (lane.xOffset - 52) * scale2;
-            const x2_right = cx + (lane.xOffset + 52) * scale2;
-
-            const y1_bot = y1;
-            const y1_top = y1 - wallH * scale1;
-            const y2_bot = y2;
-            const y2_top = y2 - wallH * scale2;
-
-            // 1. Top Roof Face (Bright Top Lighting)
+          if (isSolid) {
+            // --- Solid Cyber Wall Panel ---
             ctx.beginPath();
-            ctx.moveTo(x1_left, y1_top);
-            ctx.lineTo(x1_right, y1_top);
-            ctx.lineTo(x2_right, y2_top);
-            ctx.lineTo(x2_left, y2_top);
+            ctx.moveTo(xLeft, yBot);
+            ctx.lineTo(xRight, yBot);
+            ctx.lineTo(xRight, yTop);
+            ctx.lineTo(xLeft, yTop);
             ctx.closePath();
-            ctx.fillStyle = 'rgba(255, 100, 100, 0.85)';
-            ctx.strokeStyle = '#ff8888';
-            ctx.lineWidth = 1.5;
+
+            // Wall Panel Fill & Glow
+            const wallGrad = ctx.createLinearGradient(xLeft, yTop, xRight, yBot);
+            wallGrad.addColorStop(0, 'rgba(147, 51, 234, 0.85)');
+            wallGrad.addColorStop(0.5, 'rgba(79, 70, 229, 0.90)');
+            wallGrad.addColorStop(1, 'rgba(30, 27, 75, 0.95)');
+
+            ctx.fillStyle = wallGrad;
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = Math.max(1, 2 * scale);
+            ctx.shadowBlur = Math.min(15, 8 * scale);
+            ctx.shadowColor = '#c084fc';
             ctx.fill();
             ctx.stroke();
+            ctx.shadowBlur = 0;
 
-            // 2. Left Side Face (3D Depth Shadow)
-            if (laneIdx - 1 <= 0) {
-              ctx.beginPath();
-              ctx.moveTo(x1_left, y1_bot);
-              ctx.lineTo(x1_left, y1_top);
-              ctx.lineTo(x2_left, y2_top);
-              ctx.lineTo(x2_left, y2_bot);
-              ctx.closePath();
-              ctx.fillStyle = 'rgba(150, 20, 20, 0.9)';
-              ctx.strokeStyle = '#ff4444';
-              ctx.lineWidth = 1.5;
-              ctx.fill();
-              ctx.stroke();
-            }
-
-            // 3. Right Side Face (3D Depth Shadow)
-            if (laneIdx - 1 >= 0) {
-              ctx.beginPath();
-              ctx.moveTo(x1_right, y1_bot);
-              ctx.lineTo(x1_right, y1_top);
-              ctx.lineTo(x2_right, y2_top);
-              ctx.lineTo(x2_right, y2_bot);
-              ctx.closePath();
-              ctx.fillStyle = 'rgba(150, 20, 20, 0.9)';
-              ctx.strokeStyle = '#ff4444';
-              ctx.lineWidth = 1.5;
-              ctx.fill();
-              ctx.stroke();
-            }
-
-            // 4. Front Face (Bright Neon Laser Front Facing Player)
+            // Grid Wireframe Detail Lines on Wall
             ctx.beginPath();
-            ctx.moveTo(x1_left, y1_bot);
-            ctx.lineTo(x1_right, y1_bot);
-            ctx.lineTo(x1_right, y1_top);
-            ctx.lineTo(x1_left, y1_top);
+            ctx.moveTo((xLeft + xRight) / 2, yTop);
+            ctx.lineTo((xLeft + xRight) / 2, yBot);
+            ctx.moveTo(xLeft, (yTop + yBot) / 2);
+            ctx.lineTo(xRight, (yTop + yBot) / 2);
+            ctx.strokeStyle = 'rgba(216, 180, 254, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          } else {
+            // --- Open Pass-Through Slot Gate Portal Frame ---
+            ctx.beginPath();
+            ctx.moveTo(xLeft, yBot);
+            ctx.lineTo(xRight, yBot);
+            ctx.lineTo(xRight, yTop);
+            ctx.lineTo(xLeft, yTop);
             ctx.closePath();
-            ctx.fillStyle = 'rgba(239, 68, 68, 0.95)';
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = '#ef4444';
+
+            // Clear Green/Cyan Portal Frame Glow
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = Math.max(1.5, 3 * scale);
+            ctx.shadowBlur = Math.min(18, 10 * scale);
+            ctx.shadowColor = '#34d399';
             ctx.fill();
             ctx.stroke();
             ctx.shadowBlur = 0;
           }
-        });
-      }
+        }
+      });
 
-      // Draw 3D Volumetric Glowing Photon Sphere (Replacing 2D Arrow)
+      // Draw Player 3D Volumetric Photon Sphere
       const playerZ = 120;
       const playerScale = fov / playerZ;
       const px = cx + (playerX3D * playerScale);
-      const py = (horizonY + cameraHeight * playerScale) + (playerY3D * playerScale);
-      const photonRadius = 14 * playerScale;
+      const py = horizonY + (wallHeight3D * 0.25) * playerScale;
+      const photonRadius = 15 * playerScale;
 
-      // 1. Outer Volumetric Photon Glow Aura
+      // Outer Volumetric Photon Glow Aura
       const outerGlow = ctx.createRadialGradient(px, py, Math.max(1, photonRadius * 0.2), px, py, Math.max(2, photonRadius * 2.4));
       outerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
       outerGlow.addColorStop(0.3, 'rgba(56, 189, 248, 0.85)');
@@ -693,7 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fillStyle = outerGlow;
       ctx.fill();
 
-      // 2. 3D Orbital Light Rings (Wavefront Rings orbiting the Photon)
+      // 3D Orbital Wavefront Rings
       ctx.beginPath();
       ctx.ellipse(px, py + 2, Math.max(2, photonRadius * 1.8), Math.max(1, photonRadius * 0.65), Math.PI / 6, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
@@ -706,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // 3. Core 3D White Hot Photon Sphere
+      // Core 3D White Hot Photon Sphere
       const coreGrad = ctx.createRadialGradient(Math.max(0, px - photonRadius * 0.3), Math.max(0, py - photonRadius * 0.3), 1, px, py, Math.max(2, photonRadius));
       coreGrad.addColorStop(0, '#ffffff');
       coreGrad.addColorStop(0.5, '#38bdf8');
@@ -720,11 +668,11 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // HUD Text (Safe Padding)
+      // HUD Text
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText(`Distance: ${roadsScore} ly`, 16, 26);
-      ctx.fillText(`High: ${roadsHighScore} ly`, canvas.width - 130, 26);
+      ctx.fillText(`Gates Cleared: ${Math.floor(roadsScore / 100)}`, 16, 26);
+      ctx.fillText(`High: ${roadsHighScore}`, canvas.width - 130, 26);
     }
 
     function drawRoadsStatic() { drawRoads(); }
@@ -758,12 +706,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       selectSkyroadsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (tabRunner && tabSkyroads) {
-          tabSkyroads.classList.add('active');
-          tabRunner.classList.remove('active');
-        }
         activeGameMode = 'skyroads';
-        gameHintText.innerHTML = 'Controls: <strong>←/→</strong> or <strong>Swipe</strong> to Switch Lane | <strong>Space</strong> to Jump';
+        gameHintText.innerHTML = 'Controls: Press <strong>← / →</strong> or <strong>Touch Left/Right</strong> to Pass Wall Slots';
         startRoadsGame();
       });
     }
