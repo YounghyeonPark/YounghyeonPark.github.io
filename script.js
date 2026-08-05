@@ -257,9 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tunneled: false
       });
 
-      // Schedule NEXT spawn at a MORE FREQUENT random interval
-      const baseInterval = Math.max(22, Math.floor(45 / (widthScale || 1)));
-      const randomExtra = Math.floor(Math.random() * 35);
+      // Schedule NEXT spawn at a slightly wider minimum distance for jump recovery
+      const baseInterval = Math.max(34, Math.floor(60 / (widthScale || 1)));
+      const randomExtra = Math.floor(Math.random() * 40);
       nextRunnerSpawnFrame = runnerFrameCount + baseInterval + randomExtra;
     }
 
