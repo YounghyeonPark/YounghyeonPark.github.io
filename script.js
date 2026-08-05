@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerRunning = true;
       runnerOver = false;
       runnerScore = 0;
-      runnerBaseSpeed = 14.0;
+      runnerBaseSpeed = 8.5;
       runnerFrameCount = 0;
       runnerObstacles = [];
       tunnelingCharges = 0;
@@ -235,15 +235,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const chosenType = types[Math.floor(Math.random() * types.length)];
 
       // Random dynamic height & width for obstacle variety
-      let randomH = (22 + Math.random() * 26) * widthScale;
-      let randomW = (14 + Math.random() * 20) * widthScale;
+      let randomH = (22 + Math.random() * 24) * widthScale;
+      let randomW = (14 + Math.random() * 18) * widthScale;
 
       if (chosenType === 'lens') {
-        randomH = (32 + Math.random() * 18) * widthScale;
-        randomW = (22 + Math.random() * 12) * widthScale;
+        randomH = (30 + Math.random() * 16) * widthScale;
+        randomW = (20 + Math.random() * 10) * widthScale;
       } else if (chosenType === 'noise') {
-        randomH = (26 + Math.random() * 22) * widthScale;
-        randomW = (12 + Math.random() * 14) * widthScale;
+        randomH = (24 + Math.random() * 20) * widthScale;
+        randomW = (12 + Math.random() * 12) * widthScale;
       }
 
       runnerObstacles.push({
@@ -256,17 +256,17 @@ document.addEventListener('DOMContentLoaded', () => {
         tunneled: false
       });
 
-      // Schedule NEXT spawn at a truly random interval
-      const baseInterval = Math.max(35, Math.floor(75 / (widthScale || 1)));
-      const randomExtra = Math.floor(Math.random() * 65);
+      // Schedule NEXT spawn at a MORE FREQUENT random interval
+      const baseInterval = Math.max(22, Math.floor(45 / (widthScale || 1)));
+      const randomExtra = Math.floor(Math.random() * 35);
       nextRunnerSpawnFrame = runnerFrameCount + baseInterval + randomExtra;
     }
 
     function updateRunner() {
       runnerFrameCount++;
       const widthScale = Math.min(1.0, canvas.width / 900);
-      // High-Octane Speed Acceleration Rate (Hyper Speed Ramp)
-      runnerSpeed = (runnerBaseSpeed + (runnerScore / 120)) * widthScale;
+      // Smoother, more comfortable speed progression curve
+      runnerSpeed = (runnerBaseSpeed + (runnerScore / 1000)) * widthScale;
 
       // Realistic distance score accumulation rate
       runnerScore += Math.max(1, Math.floor(runnerSpeed / 6));
