@@ -192,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerScore = 0;
       runnerBaseSpeed = 8.5;
       runnerFrameCount = 0;
+      nextRunnerSpawnFrame = 0;
       runnerObstacles = [];
       tunnelingCharges = 0;
       nextTunnelingScore = 10000;
