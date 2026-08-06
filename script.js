@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsScore = 0;
       clearedGateCount = 0;
       lastBonusGateCount = 0;
-      gateSpeed = 7.0;
+      gateSpeed = 6.5;
       targetLane = 0;
       playerX3D = 0;
       gates = [];
@@ -547,8 +547,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRoads() {
-      // 3x Faster Speed Acceleration Progression
-      gateSpeed = 7.0 + Math.min(15.0, (clearedGateCount * 0.45));
+      // Smoother, gentler Speed Acceleration Progression
+      gateSpeed = 6.5 + Math.min(10.0, (clearedGateCount * 0.08));
 
       // Dynamic responsive slot spacing for mobile vs desktop
       const playerZ = 120;
