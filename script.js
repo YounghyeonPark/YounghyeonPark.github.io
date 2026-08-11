@@ -263,14 +263,26 @@ document.addEventListener('DOMContentLoaded', () => {
       nextRunnerSpawnFrame = runnerFrameCount + baseInterval + randomExtra;
     }
 
-    function updateRunner() {
+    let lastTime = performance.now();
+    function getDeltaTime() {
+      const now = performance.now();
+      let dt = (now - lastTime) / 16.667; // Normalized to 60fps = 1.0
+      lastTime = now;
+      if (dt > 2.5) dt = 1.0;
+      if (dt < 0.1) dt = 1.0;
+      return dt;
+    }
+
+    function updateRunner(dt = 1.0) {
       runnerFrameCount++;
-      const widthScale = Math.min(1.0, canvas.width / 900);
-      // Smoother, more comfortable speed progression curve
-      runnerSpeed = (runnerBaseSpeed + (runnerScore / 1000)) * widthScale;
+      const heightRatio = canvas.height / 240;
+
+      // Resolution & Time Delta Normalized Speed:
+      // Object takes exact same duration in seconds to cross screen regardless of canvas width!
+      runnerSpeed = (runnerBaseSpeed + (runnerScore / 1000)) * (canvas.width / 800) * dt;
 
       // Realistic distance score accumulation rate
-      runnerScore += Math.max(1, Math.floor(runnerSpeed / 6));
+      runnerScore += Math.max(1, Math.floor((runnerBaseSpeed + (runnerScore / 1000)) / 6 * dt));
       if (runnerScore > runnerHighScore) {
         runnerHighScore = runnerScore;
         localStorage.setItem('photon_high_score', runnerHighScore);
@@ -283,9 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tunnelingNotifyTimer = 110; // ~1.8 seconds notification
       }
 
-      // Gravity & Player Physics
-      runnerPlayer.vy += runnerPlayer.gravity;
-      runnerPlayer.y += runnerPlayer.vy;
+      // Gravity & Player Physics (Normalized to canvas height & dt)
+      const effectiveGravity = runnerPlayer.gravity * heightRatio * dt;
+      runnerPlayer.vy += effectiveGravity;
+      runnerPlayer.y += runnerPlayer.vy * dt;
 
       if (runnerPlayer.y >= runnerGroundY - runnerPlayer.radius) {
         runnerPlayer.y = runnerGroundY - runnerPlayer.radius;
@@ -345,23 +358,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       statusTitle.textContent = 'Photon Runner Over 🔬';
-      statusSub.innerHTML = `Detector Noise Spike Hit!<br>Score: <strong>${runnerScore} ly</strong> | High: <strong>${runnerHighScore} ly</strong>`;
-      startBtn.innerHTML = '<i class="fas fa-redo"></i> Play Again';
+      statusSub.innerHTML = `Crashed Into Optical Element<br>Distance: <strong>${runnerScore} µm</strong> | High: <strong>${runnerHighScore} µm</strong>`;
+      startBtn.innerHTML = '<i class="fas fa-redo"></i> Launch Again';
 
       const submitBox = document.getElementById('score-submit-box');
-      if (submitBox) submitBox.style.display = 'flex';
+      if (submitBox && runnerScore > 50) submitBox.style.display = 'flex';
+      if (gameModeCards) gameModeCards.style.display = 'flex';
       
       resizeRunnerCanvas();
       overlay.classList.remove('hidden');
     }
 
     function drawRunner() {
-      // Clear Background
-      ctx.fillStyle = '#0b0f19';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Ground Line
-      ctx.strokeStyle = '#334155';
+      // Draw Grid Background Line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let x = (runnerFrameCount * 2) % 40; x < canvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      // Draw Ground
+      ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, runnerGroundY);
@@ -546,9 +568,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 450);
     }
 
-    function updateRoads() {
-      // Smoother, gentler Speed Acceleration Progression
-      gateSpeed = 6.5 + Math.min(10.0, (clearedGateCount * 0.08));
+    function updateRoads(dt = 1.0) {
+      // Delta Time normalized speed progression
+      gateSpeed = (6.5 + Math.min(10.0, (clearedGateCount * 0.08))) * dt;
 
       // Dynamic responsive slot spacing for mobile vs desktop
       const playerZ = 120;
@@ -557,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const baseSlotSpacing = (canvas.width * 0.30) / playerScale;
 
       // Smooth 3D Lane Transition
-      playerX3D += (targetLane * baseSlotSpacing - playerX3D) * 0.38;
+      playerX3D += (targetLane * baseSlotSpacing - playerX3D) * Math.min(1.0, 0.38 * dt);
 
       // Spawn new gates with dynamic random distance intervals (420 - 740 Z)
       gateSpawnTimer += gateSpeed;
@@ -860,7 +882,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loopRoads() {
       if (!roadsRunning || activeGameMode !== 'skyroads') return;
-      updateRoads();
+      const dt = getDeltaTime();
+      updateRoads(dt);
       drawRoads();
       roadsAnimId = requestAnimationFrame(loopRoads);
     }
