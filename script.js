@@ -159,8 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.height = rect.height || 240;
         runnerGroundY = canvas.height - 35;
         runnerPlayer.x = Math.max(45, canvas.width * 0.1);
-        const widthScale = Math.min(1.2, Math.max(0.42, canvas.width / 900));
-        runnerSpeed = runnerBaseSpeed * widthScale;
 
         if (!runnerRunning && activeGameMode === 'runner') {
           runnerPlayer.y = runnerGroundY - runnerPlayer.radius;
@@ -231,20 +229,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let nextRunnerSpawnFrame = 0;
 
     function spawnRunnerObstacle() {
-      const widthScale = Math.min(1.0, canvas.width / 900);
       const types = ['lens', 'noise', 'aperture', 'grating'];
       const chosenType = types[Math.floor(Math.random() * types.length)];
 
-      // Random dynamic height & width for obstacle variety
-      let randomH = (22 + Math.random() * 24) * widthScale;
-      let randomW = (14 + Math.random() * 18) * widthScale;
+      // Standardized obstacle heights & widths across all resolutions
+      let randomH = 24 + Math.random() * 20;
+      let randomW = 16 + Math.random() * 16;
 
       if (chosenType === 'lens') {
-        randomH = (30 + Math.random() * 16) * widthScale;
-        randomW = (20 + Math.random() * 10) * widthScale;
+        randomH = 32 + Math.random() * 16;
+        randomW = 20 + Math.random() * 10;
       } else if (chosenType === 'noise') {
-        randomH = (24 + Math.random() * 20) * widthScale;
-        randomW = (12 + Math.random() * 12) * widthScale;
+        randomH = 26 + Math.random() * 18;
+        randomW = 14 + Math.random() * 12;
       }
 
       runnerObstacles.push({
@@ -258,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // Schedule NEXT spawn at a relaxed minimum distance for jump recovery
-      const baseInterval = Math.max(45, Math.floor(75 / (widthScale || 1)));
+      const baseInterval = 45;
       const randomExtra = Math.floor(Math.random() * 50);
       nextRunnerSpawnFrame = runnerFrameCount + baseInterval + randomExtra;
     }
