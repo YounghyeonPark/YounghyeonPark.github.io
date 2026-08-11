@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerRunning = true;
       runnerOver = false;
       runnerScore = 0;
-      runnerBaseSpeed = 8.5;
+      runnerBaseSpeed = 5.0;
       runnerFrameCount = 0;
       nextRunnerSpawnFrame = 0;
       runnerObstacles = [];
@@ -257,9 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tunneled: false
       });
 
-      // Schedule NEXT spawn at a slightly wider minimum distance for jump recovery
-      const baseInterval = Math.max(34, Math.floor(60 / (widthScale || 1)));
-      const randomExtra = Math.floor(Math.random() * 40);
+      // Schedule NEXT spawn at a relaxed minimum distance for jump recovery
+      const baseInterval = Math.max(45, Math.floor(75 / (widthScale || 1)));
+      const randomExtra = Math.floor(Math.random() * 50);
       nextRunnerSpawnFrame = runnerFrameCount + baseInterval + randomExtra;
     }
 
@@ -276,9 +276,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateRunner(dt = 1.0) {
       runnerFrameCount++;
 
-      // Constant physical speed across all window sizes & resolutions:
-      // Speed does NOT scale up with large window widths, preventing high speed on big screens!
-      runnerSpeed = (runnerBaseSpeed + (runnerScore / 1500)) * dt;
+      // Relaxed comfortable speed across all window sizes & resolutions:
+      runnerSpeed = (runnerBaseSpeed + (runnerScore / 3000)) * dt;
 
       // Realistic distance score accumulation rate
       runnerScore += Math.max(1, Math.floor((runnerBaseSpeed + (runnerScore / 1500)) / 6 * dt));
@@ -524,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsScore = 0;
       clearedGateCount = 0;
       lastBonusGateCount = 0;
-      gateSpeed = 6.5;
+      gateSpeed = 4.0;
       targetLane = 0;
       playerX3D = 0;
       gates = [];
@@ -567,8 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRoads(dt = 1.0) {
-      // Constant comfortable 3D Z-speed progression across all window sizes
-      gateSpeed = (6.0 + Math.min(8.0, (clearedGateCount * 0.06))) * dt;
+      // Relaxed, smooth 3D Z-speed progression across all window sizes
+      gateSpeed = (4.0 + Math.min(6.0, (clearedGateCount * 0.03))) * dt;
 
       // Dynamic responsive slot spacing for mobile vs desktop
       const playerZ = 120;
