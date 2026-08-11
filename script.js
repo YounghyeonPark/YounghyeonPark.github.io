@@ -254,9 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tunneled: false
       });
 
-      // Schedule NEXT spawn at a relaxed minimum distance for jump recovery
-      const baseInterval = 45;
-      const randomExtra = Math.floor(Math.random() * 50);
+      // Schedule NEXT spawn proportionally scaled with canvas width so wide screens get comfortable spacing
+      const widthRatio = canvas.width / 500;
+      const baseInterval = Math.floor(45 * Math.max(1.0, widthRatio));
+      const randomExtra = Math.floor(Math.random() * (40 * Math.max(1.0, widthRatio)));
       nextRunnerSpawnFrame = runnerFrameCount + baseInterval + randomExtra;
     }
 
