@@ -275,14 +275,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateRunner(dt = 1.0) {
       runnerFrameCount++;
-      const heightRatio = canvas.height / 240;
 
-      // Resolution & Time Delta Normalized Speed:
-      // Object takes exact same duration in seconds to cross screen regardless of canvas width!
-      runnerSpeed = (runnerBaseSpeed + (runnerScore / 1000)) * (canvas.width / 800) * dt;
+      // Constant physical speed across all window sizes & resolutions:
+      // Speed does NOT scale up with large window widths, preventing high speed on big screens!
+      runnerSpeed = (runnerBaseSpeed + (runnerScore / 1500)) * dt;
 
       // Realistic distance score accumulation rate
-      runnerScore += Math.max(1, Math.floor((runnerBaseSpeed + (runnerScore / 1000)) / 6 * dt));
+      runnerScore += Math.max(1, Math.floor((runnerBaseSpeed + (runnerScore / 1500)) / 6 * dt));
       if (runnerScore > runnerHighScore) {
         runnerHighScore = runnerScore;
         localStorage.setItem('photon_high_score', runnerHighScore);
@@ -295,9 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tunnelingNotifyTimer = 110; // ~1.8 seconds notification
       }
 
-      // Gravity & Player Physics (Normalized to canvas height & dt)
-      const effectiveGravity = runnerPlayer.gravity * heightRatio * dt;
-      runnerPlayer.vy += effectiveGravity;
+      // Gravity & Player Physics (Constant physical gravity)
+      runnerPlayer.vy += runnerPlayer.gravity * dt;
       runnerPlayer.y += runnerPlayer.vy * dt;
 
       if (runnerPlayer.y >= runnerGroundY - runnerPlayer.radius) {
@@ -569,8 +567,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRoads(dt = 1.0) {
-      // Delta Time normalized speed progression
-      gateSpeed = (6.5 + Math.min(10.0, (clearedGateCount * 0.08))) * dt;
+      // Constant comfortable 3D Z-speed progression across all window sizes
+      gateSpeed = (6.0 + Math.min(8.0, (clearedGateCount * 0.06))) * dt;
 
       // Dynamic responsive slot spacing for mobile vs desktop
       const playerZ = 120;
