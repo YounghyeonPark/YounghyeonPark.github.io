@@ -566,8 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRoads(dt = 1.0) {
-      // Relaxed, smooth 3D Z-speed progression across all window sizes
-      gateSpeed = (4.0 + Math.min(6.0, (clearedGateCount * 0.03))) * dt;
+      // Relaxed initial start (4.0) with progressive speed acceleration (0.12)
+      gateSpeed = (4.0 + Math.min(12.0, (clearedGateCount * 0.12))) * dt;
 
       // Dynamic responsive slot spacing for mobile vs desktop
       const playerZ = 120;
