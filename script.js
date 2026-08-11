@@ -139,13 +139,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let runnerSpeed = 9.0;
 
     const runnerPlayer = {
-      x: 80,
+      x: 50,
       y: 0,
-      radius: 10,
+      radius: 12,
       vy: 0,
-      gravity: 0.8,
-      jumpPower: -13.5,
-      isGrounded: true,
+      jumpPower: -15.5,
+      gravity: 0.62,
+      isGrounded: false,
       trail: []
     };
 
