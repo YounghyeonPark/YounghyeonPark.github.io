@@ -214,6 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startRunnerGame() {
+      roadsRunning = false;
+      schrodingerRunning = false;
+      if (roadsAnimId) { cancelAnimationFrame(roadsAnimId); roadsAnimId = null; }
+      if (schrodingerAnimId) { cancelAnimationFrame(schrodingerAnimId); schrodingerAnimId = null; }
       resetRunner();
       if (runnerAnimId) cancelAnimationFrame(runnerAnimId);
       runnerAnimId = requestAnimationFrame(loopRunner);
@@ -535,6 +539,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startRoadsGame() {
+      runnerRunning = false;
+      schrodingerRunning = false;
+      if (runnerAnimId) { cancelAnimationFrame(runnerAnimId); runnerAnimId = null; }
+      if (schrodingerAnimId) { cancelAnimationFrame(schrodingerAnimId); schrodingerAnimId = null; }
       resetRoads();
       if (roadsAnimId) cancelAnimationFrame(roadsAnimId);
       roadsAnimId = requestAnimationFrame(loopRoads);
@@ -927,6 +935,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startSchrodingerGame() {
+      runnerRunning = false;
+      roadsRunning = false;
+      if (runnerAnimId) { cancelAnimationFrame(runnerAnimId); runnerAnimId = null; }
+      if (roadsAnimId) { cancelAnimationFrame(roadsAnimId); roadsAnimId = null; }
       resetSchrodinger();
       if (schrodingerAnimId) cancelAnimationFrame(schrodingerAnimId);
       schrodingerAnimId = requestAnimationFrame(loopSchrodinger);
