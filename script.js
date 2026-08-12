@@ -883,12 +883,366 @@ document.addEventListener('DOMContentLoaded', () => {
       roadsAnimId = requestAnimationFrame(loopRoads);
     }
 
+    // ========================================================================
+    // GAME 3: Schrödinger's Cat (Quantum Wave-Particle Switcher Engine)
+    // ========================================================================
+    let schrodingerRunning = false;
+    let schrodingerOver = false;
+    let schrodingerScore = 0;
+    let schrodingerHighScore = parseInt(localStorage.getItem('schrodinger_high_score') || '0', 10);
+    let schrodingerAnimId = null;
+    let schrodingerFrameCount = 0;
+    let nextSchrodingerSpawnFrame = 0;
+    let schrodingerSpeed = 4.5;
+    let isObservedState = false; // false = Superposition Box 🔒, true = Observed Cat 🔓🐱
+    let statePulseTimer = 0;
+
+    let schrodingerPlayer = {
+      x: 70,
+      y: 0,
+      radius: 14,
+      trail: []
+    };
+
+    let schrodingerElements = []; // Barriers (Laser/Spikes) & Collectibles (Fish Treat 🐟)
+
+    function resetSchrodinger() {
+      if (schrodingerAnimId) {
+        cancelAnimationFrame(schrodingerAnimId);
+        schrodingerAnimId = null;
+      }
+      resizeRunnerCanvas();
+      schrodingerRunning = true;
+      schrodingerOver = false;
+      schrodingerScore = 0;
+      schrodingerFrameCount = 0;
+      nextSchrodingerSpawnFrame = 0;
+      schrodingerSpeed = 4.5;
+      isObservedState = false;
+      statePulseTimer = 0;
+      schrodingerElements = [];
+      schrodingerPlayer.y = runnerGroundY - 35;
+      schrodingerPlayer.trail = [];
+      overlay.classList.add('hidden');
+    }
+
+    function startSchrodingerGame() {
+      resetSchrodinger();
+      if (schrodingerAnimId) cancelAnimationFrame(schrodingerAnimId);
+      schrodingerAnimId = requestAnimationFrame(loopSchrodinger);
+    }
+
+    function toggleSchrodingerState() {
+      if (!schrodingerRunning || schrodingerOver) {
+        startSchrodingerGame();
+        return;
+      }
+      isObservedState = !isObservedState;
+      statePulseTimer = 25;
+    }
+
+    function spawnSchrodingerElement() {
+      const types = ['barrier', 'treat', 'barrier', 'observer'];
+      const chosenType = types[Math.floor(Math.random() * types.length)];
+
+      if (chosenType === 'barrier') {
+        const height = 65 + Math.random() * 45;
+        schrodingerElements.push({
+          x: canvas.width + 30,
+          y: runnerGroundY - height,
+          width: 22,
+          height: height,
+          type: 'barrier',
+          passed: false
+        });
+      } else if (chosenType === 'treat') {
+        const treatY = runnerGroundY - 40 - Math.random() * 50;
+        schrodingerElements.push({
+          x: canvas.width + 30,
+          y: treatY,
+          width: 24,
+          height: 24,
+          type: 'treat',
+          collected: false
+        });
+      } else {
+        // Observer Camera (Forces observation)
+        schrodingerElements.push({
+          x: canvas.width + 30,
+          y: runnerGroundY - 90,
+          width: 28,
+          height: 28,
+          type: 'observer',
+          triggered: false
+        });
+      }
+
+      const baseInterval = 55;
+      const randomExtra = Math.floor(Math.random() * 45);
+      nextSchrodingerSpawnFrame = schrodingerFrameCount + baseInterval + randomExtra;
+    }
+
+    function updateSchrodinger(dt = 1.0) {
+      schrodingerFrameCount++;
+      schrodingerSpeed = (4.5 + Math.min(6.0, schrodingerScore / 2500)) * dt;
+
+      schrodingerScore += Math.max(1, Math.floor(schrodingerSpeed / 4));
+      if (schrodingerScore > schrodingerHighScore) {
+        schrodingerHighScore = schrodingerScore;
+        localStorage.setItem('schrodinger_high_score', schrodingerHighScore);
+      }
+
+      // Trail FX
+      schrodingerPlayer.trail.push({ x: schrodingerPlayer.x, y: schrodingerPlayer.y, state: isObservedState });
+      if (schrodingerPlayer.trail.length > 12) schrodingerPlayer.trail.shift();
+
+      // Spawn Elements
+      if (schrodingerFrameCount >= nextSchrodingerSpawnFrame) {
+        spawnSchrodingerElement();
+      }
+
+      // Move & Update Elements
+      for (let i = schrodingerElements.length - 1; i >= 0; i--) {
+        const elem = schrodingerElements[i];
+        elem.x -= schrodingerSpeed;
+
+        // Collision & Interaction Checking
+        const playerRadius = schrodingerPlayer.radius;
+        const closestX = Math.max(elem.x, Math.min(schrodingerPlayer.x, elem.x + elem.width));
+        const closestY = Math.max(elem.y, Math.min(schrodingerPlayer.y, elem.y + elem.height));
+        const dx = schrodingerPlayer.x - closestX;
+        const dy = schrodingerPlayer.y - closestY;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq < playerRadius * playerRadius) {
+          if (elem.type === 'barrier') {
+            if (isObservedState) {
+              // --- CRASH: Hit Barrier in Observed Cat Particle State! ---
+              endSchrodinger('Wave Function Collapsed Into Solid Obstacle! 🐱💥');
+              return;
+            } else {
+              // --- PASSED: Quantum Tunneling in Superposition Box State! ---
+              elem.passed = true;
+            }
+          } else if (elem.type === 'treat' && !elem.collected) {
+            if (isObservedState) {
+              // --- COLLECTED: Caught Cat Treat in Observed Cat State! ---
+              elem.collected = true;
+              schrodingerScore += 300;
+              statePulseTimer = 20;
+            }
+          } else if (elem.type === 'observer' && !elem.triggered) {
+            // Observer Camera forces state into Observed Cat!
+            elem.triggered = true;
+            if (!isObservedState) {
+              isObservedState = true;
+              statePulseTimer = 35;
+            }
+          }
+        }
+
+        if (elem.x + elem.width < -40) {
+          schrodingerElements.splice(i, 1);
+        }
+      }
+    }
+
+    function endSchrodinger(reason) {
+      schrodingerRunning = false;
+      schrodingerOver = true;
+      triggerGameOverCooldown();
+      if (schrodingerAnimId) {
+        cancelAnimationFrame(schrodingerAnimId);
+        schrodingerAnimId = null;
+      }
+
+      statusTitle.textContent = 'Schrödinger Cat Over 🐱⚛️';
+      statusSub.innerHTML = `${reason}<br>Quantum Score: <strong>${schrodingerScore} pts</strong> | High: <strong>${schrodingerHighScore} pts</strong>`;
+      startBtn.innerHTML = '<i class="fas fa-redo"></i> Observe Again';
+
+      const submitBox = document.getElementById('score-submit-box');
+      if (submitBox && schrodingerScore > 50) submitBox.style.display = 'flex';
+      if (gameModeCards) gameModeCards.style.display = 'flex';
+
+      resizeRunnerCanvas();
+      overlay.classList.remove('hidden');
+    }
+
+    function drawSchrodinger() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Quantum Wave Background Grid
+      ctx.strokeStyle = isObservedState ? 'rgba(56, 189, 248, 0.06)' : 'rgba(168, 85, 247, 0.08)';
+      ctx.lineWidth = 1;
+      for (let x = (schrodingerFrameCount * 2) % 40; x < canvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      // Ground Line
+      ctx.strokeStyle = isObservedState ? '#38bdf8' : '#c084fc';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(0, runnerGroundY);
+      ctx.lineTo(canvas.width, runnerGroundY);
+      ctx.stroke();
+
+      // Draw Trail
+      schrodingerPlayer.trail.forEach((pt, idx) => {
+        const alpha = (idx / schrodingerPlayer.trail.length) * 0.45;
+        const r = schrodingerPlayer.radius * (idx / schrodingerPlayer.trail.length);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, Math.max(1, r), 0, Math.PI * 2);
+        ctx.fillStyle = pt.state ? `rgba(56, 189, 248, ${alpha})` : `rgba(192, 132, 252, ${alpha})`;
+        ctx.fill();
+      });
+
+      // Draw Player: Superposition Box 🔒 vs Observed Cyber Cat 🔓🐱
+      ctx.save();
+      const px = schrodingerPlayer.x;
+      const py = schrodingerPlayer.y;
+
+      if (statePulseTimer > 0) {
+        statePulseTimer--;
+        ctx.beginPath();
+        ctx.arc(px, py, schrodingerPlayer.radius + (30 - statePulseTimer) * 1.5, 0, Math.PI * 2);
+        ctx.strokeStyle = isObservedState ? `rgba(56, 189, 248, ${statePulseTimer / 30})` : `rgba(192, 132, 252, ${statePulseTimer / 30})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      if (!isObservedState) {
+        // --- 🔒 SUPERPOSITION QUANTUM BOX ---
+        ctx.shadowColor = '#c084fc';
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.35)';
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 2;
+
+        const boxW = 30;
+        const boxH = 30;
+        ctx.fillRect(px - boxW / 2, py - boxH / 2, boxW, boxH);
+        ctx.strokeRect(px - boxW / 2, py - boxH / 2, boxW, boxH);
+
+        // Draw Psi Symbol Ψ in Center of Box
+        ctx.font = '700 14px "Fira Code", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Ψ', px, py);
+        ctx.textAlign = 'left';
+      } else {
+        // --- 🔓 OBSERVED CYBER CAT ---
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 18;
+
+        // Cat Body Sphere
+        const catGrad = ctx.createRadialGradient(px - 3, py - 3, 1, px, py, schrodingerPlayer.radius);
+        catGrad.addColorStop(0, '#ffffff');
+        catGrad.addColorStop(0.6, '#38bdf8');
+        catGrad.addColorStop(1, '#0284c7');
+
+        ctx.beginPath();
+        ctx.arc(px, py, schrodingerPlayer.radius, 0, Math.PI * 2);
+        ctx.fillStyle = catGrad;
+        ctx.fill();
+
+        // Neon Cat Ears
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.moveTo(px - 10, py - 8);
+        ctx.lineTo(px - 4, py - 18);
+        ctx.lineTo(px, py - 10);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(px, py - 10);
+        ctx.lineTo(px + 4, py - 18);
+        ctx.lineTo(px + 10, py - 8);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Draw Elements (Laser Barriers, Fish Treats, Observer Cameras)
+      schrodingerElements.forEach(elem => {
+        if (elem.type === 'barrier') {
+          // Red/Pink Laser Barrier
+          ctx.save();
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+          ctx.strokeStyle = '#ef4444';
+          ctx.shadowColor = '#ef4444';
+          ctx.shadowBlur = 12;
+          ctx.lineWidth = 2;
+          ctx.fillRect(elem.x, elem.y, elem.width, elem.height);
+          ctx.strokeRect(elem.x, elem.y, elem.width, elem.height);
+
+          // Laser stripes inside barrier
+          ctx.strokeStyle = '#fca5a5';
+          ctx.lineWidth = 1;
+          for (let ly = elem.y + 10; ly < elem.y + elem.height; ly += 12) {
+            ctx.beginPath();
+            ctx.moveTo(elem.x, ly);
+            ctx.lineTo(elem.x + elem.width, ly);
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (elem.type === 'treat') {
+          // Floating Fish Treat 🐟
+          ctx.save();
+          if (!elem.collected) {
+            ctx.font = '18px sans-serif';
+            ctx.shadowColor = '#f59e0b';
+            ctx.shadowBlur = 10;
+            ctx.fillText('🐟', elem.x, elem.y + 18);
+          }
+          ctx.restore();
+        } else if (elem.type === 'observer') {
+          // Observer Camera 👁️
+          ctx.save();
+          ctx.font = '20px sans-serif';
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 12;
+          ctx.fillText('👁️', elem.x, elem.y + 22);
+          ctx.restore();
+        }
+      });
+
+      // HUD Text
+      ctx.font = '12px "Fira Code", monospace';
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillText(`Score: ${schrodingerScore} pts`, 16, 26);
+      ctx.fillText(`High: ${schrodingerHighScore} pts`, canvas.width - 145, 26);
+
+      // State Badge HUD
+      ctx.font = '700 13px "Fira Code", monospace';
+      if (!isObservedState) {
+        ctx.fillStyle = '#c084fc';
+        ctx.fillText(`STATE: 🔒 SUPERPOSITION (Wave / Unobserved)`, 16, 48);
+      } else {
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`STATE: 🔓 OBSERVED (Particle Cat 🐱)`, 16, 48);
+      }
+    }
+
+    function drawSchrodingerStatic() { drawSchrodinger(); }
+
+    function loopSchrodinger() {
+      if (!schrodingerRunning || activeGameMode !== 'schrodinger') return;
+      const dt = getDeltaTime();
+      updateSchrodinger(dt);
+      drawSchrodinger();
+      schrodingerAnimId = requestAnimationFrame(loopSchrodinger);
+    }
+
     // ------------------------------------------------------------------------
     // Game Mode Switcher & Input Router
     // ------------------------------------------------------------------------
     // Center Big Game Selection Cards Handlers
     const selectRunnerBtn = document.getElementById('select-game-runner');
     const selectSkyroadsBtn = document.getElementById('select-game-skyroads');
+    const selectSchrodingerBtn = document.getElementById('select-game-schrodinger');
     const gameModeCards = document.getElementById('game-mode-selector-cards');
 
     if (selectRunnerBtn && selectSkyroadsBtn) {
@@ -908,6 +1262,15 @@ document.addEventListener('DOMContentLoaded', () => {
         activeGameMode = 'skyroads';
         gameHintText.innerHTML = 'Controls: Press <strong>← / →</strong> or <strong>Touch Left/Right</strong> to Pass Wall Slots';
         startRoadsGame();
+      });
+    }
+
+    if (selectSchrodingerBtn) {
+      selectSchrodingerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        activeGameMode = 'schrodinger';
+        gameHintText.innerHTML = 'Controls: Press <strong>Space</strong> or <strong>Tap Screen</strong> to Toggle State [Box 🔒 ↔ Cat 🐱]';
+        startSchrodingerGame();
       });
     }
 
@@ -953,6 +1316,15 @@ document.addEventListener('DOMContentLoaded', () => {
             startRunnerGame();
           }
         }
+      } else if (activeGameMode === 'schrodinger') {
+        if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+          e.preventDefault();
+          if (schrodingerRunning && !schrodingerOver) {
+            toggleSchrodingerState();
+          } else if (schrodingerOver && canRestart) {
+            startSchrodingerGame();
+          }
+        }
       } else {
         if (e.code === 'Space' || e.code === 'ArrowUp') {
           e.preventDefault();
@@ -970,7 +1342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ------------------------------------------------------------------------
-    // Touch & Mouse Input Router for 2D Jump & 3D Lane Switching
+    // Touch & Mouse Input Router for 2D Jump & 3D Lane Switching & Quantum State Toggle
     // ------------------------------------------------------------------------
     let touchStartX = 0;
 
@@ -983,6 +1355,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (activeGameMode === 'runner') {
         jumpRunner();
+      } else if (activeGameMode === 'schrodinger') {
+        toggleSchrodingerState();
       } else {
         if (Math.abs(dx) > 25) {
           if (dx > 0) moveLaneRight();
@@ -1002,6 +1376,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         if (activeGameMode === 'runner') {
           jumpRunner();
+        } else if (activeGameMode === 'schrodinger') {
+          toggleSchrodingerState();
         } else {
           const rect = canvas.getBoundingClientRect();
           const midX = e.clientX - rect.left;
