@@ -1287,6 +1287,13 @@ section {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 1.5rem;
+  transition: all var(--transition-normal);
+}
+
+.skill-category-card:hover {
+  border-color: var(--accent-cyan);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
 .skill-category-title {
@@ -1297,44 +1304,50 @@ section {
   margin-bottom: 1.25rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .skill-category-title i {
   color: var(--accent-cyan);
 }
 
-.skill-items-list {
+.skill-tags-group {
   display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.55rem;
 }
 
-.skill-item-info {
-  display: flex;
-  justify-content: space-between;
+.skill-tag-pill {
+  background: rgba(31, 41, 55, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.8rem;
   font-size: 0.85rem;
-  margin-bottom: 0.25rem;
-}
-
-.skill-name {
   color: var(--text-primary);
-  font-weight: 500;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  transition: all var(--transition-fast);
 }
 
-.skill-bar {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
+.skill-tag-pill:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
 }
 
-.skill-progress {
-  height: 100%;
-  background: var(--gradient-accent);
-  border-radius: 10px;
-  transition: width 1s ease-in-out;
+.skill-tag-pill .tag-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.skill-tag-pill .tag-sub {
+  font-size: 0.72rem;
+  color: var(--accent-cyan);
+  font-family: var(--font-code);
 }
 
 /* --- Contact & Footer Section --- */
