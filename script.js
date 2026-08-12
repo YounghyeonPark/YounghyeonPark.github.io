@@ -908,6 +908,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let schrodingerPlayer = {
       x: 70,
       y: 0,
+      vy: 0,
+      gravity: 0.65,
+      jumpPower: -12.5,
+      isGrounded: true,
       radius: 14,
       trail: []
     };
@@ -929,7 +933,9 @@ document.addEventListener('DOMContentLoaded', () => {
       isObservedState = false;
       statePulseTimer = 0;
       schrodingerElements = [];
-      schrodingerPlayer.y = runnerGroundY - 35;
+      schrodingerPlayer.y = runnerGroundY - schrodingerPlayer.radius;
+      schrodingerPlayer.vy = 0;
+      schrodingerPlayer.isGrounded = true;
       schrodingerPlayer.trail = [];
       overlay.classList.add('hidden');
     }
@@ -942,6 +948,17 @@ document.addEventListener('DOMContentLoaded', () => {
       resetSchrodinger();
       if (schrodingerAnimId) cancelAnimationFrame(schrodingerAnimId);
       schrodingerAnimId = requestAnimationFrame(loopSchrodinger);
+    }
+
+    function jumpSchrodinger() {
+      if (!schrodingerRunning || schrodingerOver) {
+        startSchrodingerGame();
+        return;
+      }
+      if (schrodingerPlayer.isGrounded) {
+        schrodingerPlayer.vy = schrodingerPlayer.jumpPower;
+        schrodingerPlayer.isGrounded = false;
+      }
     }
 
     function toggleSchrodingerState() {
@@ -958,7 +975,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const chosenType = types[Math.floor(Math.random() * types.length)];
 
       if (chosenType === 'barrier') {
-        const height = 65 + Math.random() * 45;
+        const height = 55 + Math.random() * 40;
         schrodingerElements.push({
           x: canvas.width + 30,
           y: runnerGroundY - height,
@@ -968,7 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
           passed: false
         });
       } else if (chosenType === 'treat') {
-        const treatY = runnerGroundY - 40 - Math.random() * 50;
+        const treatY = runnerGroundY - 40 - Math.random() * 60;
         schrodingerElements.push({
           x: canvas.width + 30,
           y: treatY,
@@ -997,6 +1014,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateSchrodinger(dt = 1.0) {
       schrodingerFrameCount++;
       schrodingerSpeed = (4.5 + Math.min(6.0, schrodingerScore / 2500)) * dt;
+
+      // Jump Physics
+      schrodingerPlayer.vy += schrodingerPlayer.gravity * dt;
+      schrodingerPlayer.y += schrodingerPlayer.vy * dt;
+
+      const groundY = runnerGroundY - schrodingerPlayer.radius;
+      if (schrodingerPlayer.y >= groundY) {
+        schrodingerPlayer.y = groundY;
+        schrodingerPlayer.vy = 0;
+        schrodingerPlayer.isGrounded = true;
+      }
 
       // Trail FX
       schrodingerPlayer.trail.push({ x: schrodingerPlayer.x, y: schrodingerPlayer.y, state: isObservedState });
@@ -1227,13 +1255,13 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fillText(`High: ${schrodingerHighScore} pts`, canvas.width - 145, 26);
 
       // State Badge HUD
-      ctx.font = '700 13px "Fira Code", monospace';
+      ctx.font = '700 12px "Fira Code", monospace';
       if (!isObservedState) {
         ctx.fillStyle = '#c084fc';
-        ctx.fillText(`STATE: 🔒 SUPERPOSITION (Wave / Unobserved)`, 16, 48);
+        ctx.fillText(`STATE: 🔒 SUPERPOSITION (Press ↑/W: Jump | Space/↓: State Toggle)`, 16, 48);
       } else {
         ctx.fillStyle = '#38bdf8';
-        ctx.fillText(`STATE: 🔓 OBSERVED (Particle Cat 🐱)`, 16, 48);
+        ctx.fillText(`STATE: 🔓 OBSERVED CAT 🐱 (Press ↑/W: Jump | Space/↓: State Toggle)`, 16, 48);
       }
     }
 
@@ -1328,7 +1356,14 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } else if (activeGameMode === 'schrodinger') {
-        if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+          e.preventDefault();
+          if (schrodingerRunning && !schrodingerOver) {
+            jumpSchrodinger();
+          } else if (schrodingerOver && canRestart) {
+            startSchrodingerGame();
+          }
+        } else if (e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'KeyS') {
           e.preventDefault();
           if (schrodingerRunning && !schrodingerOver) {
             toggleSchrodingerState();
@@ -1356,9 +1391,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Touch & Mouse Input Router for 2D Jump & 3D Lane Switching & Quantum State Toggle
     // ------------------------------------------------------------------------
     let touchStartX = 0;
+    let touchStartY = 0;
 
     canvas.addEventListener('touchstart', (e) => {
       touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
     }, { passive: true });
 
     canvas.addEventListener('touchend', (e) => {
@@ -1367,7 +1404,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (activeGameMode === 'runner') {
         jumpRunner();
       } else if (activeGameMode === 'schrodinger') {
-        toggleSchrodingerState();
+        const rect = canvas.getBoundingClientRect();
+        const touchY = e.changedTouches[0].clientY - rect.top;
+        if (touchY < rect.height * 0.5) {
+          jumpSchrodinger();
+        } else {
+          toggleSchrodingerState();
+        }
       } else {
         if (Math.abs(dx) > 25) {
           if (dx > 0) moveLaneRight();
@@ -1388,7 +1431,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeGameMode === 'runner') {
           jumpRunner();
         } else if (activeGameMode === 'schrodinger') {
-          toggleSchrodingerState();
+          const rect = canvas.getBoundingClientRect();
+          const clickY = e.clientY - rect.top;
+          if (clickY < rect.height * 0.5) {
+            jumpSchrodinger();
+          } else {
+            toggleSchrodingerState();
+          }
         } else {
           const rect = canvas.getBoundingClientRect();
           const midX = e.clientX - rect.left;
