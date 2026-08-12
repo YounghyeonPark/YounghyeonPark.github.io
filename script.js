@@ -954,7 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function spawnSchrodingerElement() {
-      const types = ['barrier', 'treat', 'barrier', 'observer'];
+      const types = ['barrier', 'treat', 'treat', 'barrier', 'observer'];
       const chosenType = types[Math.floor(Math.random() * types.length)];
 
       if (chosenType === 'barrier') {
@@ -989,20 +989,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      const baseInterval = 55;
-      const randomExtra = Math.floor(Math.random() * 45);
+      const baseInterval = 50;
+      const randomExtra = Math.floor(Math.random() * 40);
       nextSchrodingerSpawnFrame = schrodingerFrameCount + baseInterval + randomExtra;
     }
 
     function updateSchrodinger(dt = 1.0) {
       schrodingerFrameCount++;
       schrodingerSpeed = (4.5 + Math.min(6.0, schrodingerScore / 2500)) * dt;
-
-      schrodingerScore += Math.max(1, Math.floor(schrodingerSpeed / 4));
-      if (schrodingerScore > schrodingerHighScore) {
-        schrodingerHighScore = schrodingerScore;
-        localStorage.setItem('schrodinger_high_score', schrodingerHighScore);
-      }
 
       // Trail FX
       schrodingerPlayer.trail.push({ x: schrodingerPlayer.x, y: schrodingerPlayer.y, state: isObservedState });
@@ -1040,8 +1034,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isObservedState) {
               // --- COLLECTED: Caught Cat Treat in Observed Cat State! ---
               elem.collected = true;
-              schrodingerScore += 300;
+              schrodingerScore += 500; // Score increases ONLY when eating items (+500 pts)!
               statePulseTimer = 20;
+
+              if (schrodingerScore > schrodingerHighScore) {
+                schrodingerHighScore = schrodingerScore;
+                localStorage.setItem('schrodinger_high_score', schrodingerHighScore);
+              }
             }
           } else if (elem.type === 'observer' && !elem.triggered) {
             // Observer Camera forces state into Observed Cat!
