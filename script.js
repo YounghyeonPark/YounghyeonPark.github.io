@@ -1561,13 +1561,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Leaderboard Event Listeners
-    if (leaderboardBtn) {
-      leaderboardBtn.addEventListener('click', (e) => {
+    // Leaderboard Event Listeners (Header & Overlay Buttons)
+    document.querySelectorAll('.leaderboard-toggle-btn, .leaderboard-overlay-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
         openLeaderboardModal();
       });
-    }
+    });
 
     if (leaderboardCloseBtn) {
       leaderboardCloseBtn.addEventListener('click', (e) => {

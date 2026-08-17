@@ -49,18 +49,22 @@
       <div class="hero-game-wrapper">
         <div class="game-container" id="game-container">
           <div class="game-header">
-            <span class="game-title"><i class="fas fa-gamepad"></i> YP Arcade Hub</span>
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="game-header-top">
+              <span class="game-title"><i class="fas fa-gamepad"></i> YP Arcade Hub</span>
               <button id="leaderboard-toggle-btn" class="leaderboard-toggle-btn"><i class="fas fa-trophy"></i> Leaderboard</button>
-              <span id="game-hint-text" class="game-hint">Controls: Press <strong>← / →</strong> or <strong>Touch Left/Right</strong> to Switch Lanes</span>
             </div>
+            <span id="game-hint-text" class="game-hint">Controls: Press <strong>Space / Tap</strong> to Play</span>
           </div>
           <canvas id="hero-game-canvas"></canvas>
           
           <div class="game-overlay" id="game-overlay">
             <div class="game-overlay-content">
-              <div id="game-status-title">YP Arcade Hub 🔬🚀</div>
+              <div id="game-status-title">YP Arcade Hub 🔬🚀🐱</div>
               <div id="game-status-sub">Select a game mode to start playing!</div>
+
+              <div style="margin: 0.4rem 0 0.8rem 0;">
+                <button class="leaderboard-toggle-btn leaderboard-overlay-btn" style="font-size: 0.8rem; padding: 0.35rem 0.8rem;"><i class="fas fa-trophy"></i> Hall of Fame / Leaderboard</button>
+              </div>
               
               <div id="score-submit-box" class="score-submit-box" style="display: none;">
                 <input type="text" id="nickname-input" class="nickname-input" placeholder="Your Nickname" maxlength="12">
