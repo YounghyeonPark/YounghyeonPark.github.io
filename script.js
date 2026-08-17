@@ -975,11 +975,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const chosenType = types[Math.floor(Math.random() * types.length)];
 
       if (chosenType === 'barrier') {
-        const height = 55 + Math.random() * 40;
+        // Laser barriers span high up so jumping cannot bypass them (forces Quantum Box Tunneling!)
+        const height = Math.max(160, canvas.height * 0.78);
         schrodingerElements.push({
           x: canvas.width + 30,
           y: runnerGroundY - height,
-          width: 22,
+          width: 24,
           height: height,
           type: 'barrier',
           passed: false
