@@ -1471,18 +1471,35 @@ document.addEventListener('DOMContentLoaded', () => {
       ];
     }
 
-    function renderLeaderboardTable(data) {
+    let activeLeaderboardFilter = 'all';
+
+    function renderLeaderboardTable(data, filter = activeLeaderboardFilter) {
       const listContainer = document.getElementById('leaderboard-list');
       if (!listContainer) return;
       listContainer.innerHTML = '';
 
-      if (!data || data.length === 0) {
-        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No scores registered yet. Play a game to be the first!</div>`;
+      // Update tab active classes
+      document.querySelectorAll('.leaderboard-tab').forEach(tab => {
+        if (tab.getAttribute('data-game-filter') === filter) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+
+      let filteredData = [...(data || [])];
+      if (filter !== 'all') {
+        filteredData = filteredData.filter(item => item.game === filter);
+      }
+
+      if (!filteredData || filteredData.length === 0) {
+        const gameLabel = filter === 'all' ? 'any game' : filter;
+        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No scores registered for ${gameLabel} yet. Play to be the first!</div>`;
         return;
       }
 
-      data.sort((a, b) => b.score - a.score);
-      const top10 = data.slice(0, 10);
+      filteredData.sort((a, b) => b.score - a.score);
+      const top10 = filteredData.slice(0, 10);
 
       top10.forEach((item, index) => {
         const itemDiv = document.createElement('div');
@@ -1492,12 +1509,16 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (index === 1) { rankClass += ' rank-2'; rankBadge = '🥈 2nd'; }
         else if (index === 2) { rankClass += ' rank-3'; rankBadge = '🥉 3rd'; }
 
+        let gameBadgeColor = 'var(--gradient-accent)';
+        if (item.game === 'Slot Gate 3D') gameBadgeColor = 'var(--gradient-purple)';
+        else if (item.game === 'Schrödinger Cat') gameBadgeColor = 'rgba(168, 85, 247, 0.4)';
+
         itemDiv.className = rankClass;
         itemDiv.innerHTML = `
           <div style="display: flex; align-items: center; gap: 0.6rem;">
             <span style="font-weight: 700; min-width: 45px;">${rankBadge}</span>
             <span style="font-weight: 600; color: var(--text-primary);">${item.name}</span>
-            <span class="card-badge" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">${item.game || 'Arcade'}</span>
+            <span class="card-badge" style="font-size: 0.65rem; padding: 0.1rem 0.4rem; background: ${gameBadgeColor};">${item.game || 'Arcade'}</span>
           </div>
           <div style="font-weight: 700; color: var(--accent-cyan); font-family: monospace;">
             ${item.score.toLocaleString()} pts
@@ -1507,8 +1528,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    async function fetchOnlineLeaderboard() {
-      renderLeaderboardTable(cachedLeaderboard);
+    async function fetchOnlineLeaderboard(filter = activeLeaderboardFilter) {
+      renderLeaderboardTable(cachedLeaderboard, filter);
       try {
         const res = await fetch(KVDB_ENDPOINT);
         if (res.ok) {
@@ -1516,7 +1537,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (Array.isArray(remoteData) && remoteData.length > 0) {
             cachedLeaderboard = remoteData;
             localStorage.setItem('yp_cached_leaderboard', JSON.stringify(cachedLeaderboard));
-            renderLeaderboardTable(cachedLeaderboard);
+            renderLeaderboardTable(cachedLeaderboard, filter);
           }
         }
       } catch (err) {
@@ -1536,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       cachedLeaderboard.sort((a, b) => b.score - a.score);
-      cachedLeaderboard = cachedLeaderboard.slice(0, 15);
+      cachedLeaderboard = cachedLeaderboard.slice(0, 30);
       localStorage.setItem('yp_leaderboard_v2', JSON.stringify(cachedLeaderboard));
 
       try {
@@ -1549,15 +1570,24 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Online submit failed, cached locally');
       }
 
-      fetchOnlineLeaderboard();
-      openLeaderboardModal();
+      activeLeaderboardFilter = gameName;
+      openLeaderboardModal(gameName);
     }
 
-    function openLeaderboardModal() {
+    function openLeaderboardModal(defaultGameFilter = null) {
       const modal = document.getElementById('leaderboard-modal');
       if (modal) {
+        if (defaultGameFilter) {
+          activeLeaderboardFilter = defaultGameFilter;
+        } else if (activeGameMode === 'runner') {
+          activeLeaderboardFilter = 'Photon Runner';
+        } else if (activeGameMode === 'skyroads') {
+          activeLeaderboardFilter = 'Slot Gate 3D';
+        } else if (activeGameMode === 'schrodinger') {
+          activeLeaderboardFilter = 'Schrödinger Cat';
+        }
         modal.classList.remove('hidden');
-        fetchOnlineLeaderboard();
+        fetchOnlineLeaderboard(activeLeaderboardFilter);
       }
     }
 
@@ -1567,6 +1597,18 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.add('hidden');
       }
     }
+
+    // Leaderboard Tab Click Listener (Filter by Game)
+    document.addEventListener('click', (e) => {
+      const tabTarget = e.target.closest('.leaderboard-tab');
+      if (tabTarget) {
+        e.preventDefault();
+        e.stopPropagation();
+        const filter = tabTarget.getAttribute('data-game-filter') || 'all';
+        activeLeaderboardFilter = filter;
+        renderLeaderboardTable(cachedLeaderboard, filter);
+      }
+    });
 
     // Delegated click listener for all leaderboard buttons
     document.addEventListener('click', (e) => {
@@ -1607,8 +1649,15 @@ document.addEventListener('DOMContentLoaded', () => {
       submitScoreBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const nickname = nicknameInput.value;
-        const currentScore = activeGameMode === 'runner' ? runnerScore : roadsScore;
-        const gameName = activeGameMode === 'runner' ? 'Photon Runner' : 'Slot Gate 3D';
+        let currentScore = runnerScore;
+        let gameName = 'Photon Runner';
+        if (activeGameMode === 'skyroads') {
+          currentScore = roadsScore;
+          gameName = 'Slot Gate 3D';
+        } else if (activeGameMode === 'schrodinger') {
+          currentScore = schrodingerScore;
+          gameName = 'Schrödinger Cat';
+        }
         submitScoreToLeaderboard(nickname, currentScore, gameName);
       });
     }

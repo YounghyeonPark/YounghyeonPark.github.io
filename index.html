@@ -110,9 +110,17 @@
             <div class="leaderboard-modal-card">
               <div class="leaderboard-modal-header">
                 <div class="leaderboard-title">
-                  <i class="fas fa-trophy" style="color: #f59e0b;"></i> Global Hall of Fame (Top 10)
+                  <i class="fas fa-trophy" style="color: #f59e0b;"></i> Global Hall of Fame
                 </div>
                 <button id="close-leaderboard" class="leaderboard-close-btn" aria-label="Close">&times;</button>
+              </div>
+
+              <!-- Game Specific Filter Tabs -->
+              <div class="leaderboard-tabs" id="leaderboard-tabs">
+                <button class="leaderboard-tab active" data-game-filter="all">🌟 All</button>
+                <button class="leaderboard-tab" data-game-filter="Photon Runner">🔬 Photon Runner</button>
+                <button class="leaderboard-tab" data-game-filter="Slot Gate 3D">🚀 Slot Gate 3D</button>
+                <button class="leaderboard-tab" data-game-filter="Schrödinger Cat">🐱 Schrödinger Cat</button>
               </div>
               
               <div class="leaderboard-modal-body">
