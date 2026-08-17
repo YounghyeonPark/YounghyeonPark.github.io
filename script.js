@@ -1453,11 +1453,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------------
     const KVDB_ENDPOINT = 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_leaderboard_v2';
 
-    const leaderboardBtn = document.getElementById('leaderboard-toggle-btn');
     const leaderboardModal = document.getElementById('leaderboard-modal');
     const leaderboardCloseBtn = document.getElementById('close-leaderboard');
     const leaderboardBottomCloseBtn = document.getElementById('close-leaderboard-bottom-btn');
-    const leaderboardBody = document.getElementById('leaderboard-body');
     const nicknameInput = document.getElementById('nickname-input');
     const submitScoreBtn = document.getElementById('submit-score-btn');
 
@@ -1474,11 +1472,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderLeaderboardTable(data) {
-      if (!leaderboardBody) return;
-      leaderboardBody.innerHTML = '';
+      const listContainer = document.getElementById('leaderboard-list');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
 
       if (!data || data.length === 0) {
-        leaderboardBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">No scores registered yet. Be the first!</td></tr>`;
+        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No scores registered yet. Play a game to be the first!</div>`;
         return;
       }
 
@@ -1486,19 +1485,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const top10 = data.slice(0, 10);
 
       top10.forEach((item, index) => {
-        const tr = document.createElement('tr');
+        const itemDiv = document.createElement('div');
+        let rankClass = 'leaderboard-item';
         let rankBadge = `${index + 1}`;
-        if (index === 0) rankBadge = '🥇 1st';
-        else if (index === 1) rankBadge = '🥈 2nd';
-        else if (index === 2) rankBadge = '🥉 3rd';
+        if (index === 0) { rankClass += ' rank-1'; rankBadge = '🥇 1st'; }
+        else if (index === 1) { rankClass += ' rank-2'; rankBadge = '🥈 2nd'; }
+        else if (index === 2) { rankClass += ' rank-3'; rankBadge = '🥉 3rd'; }
 
-        tr.innerHTML = `
-          <td style="font-weight: 700;">${rankBadge}</td>
-          <td style="font-weight: 600; color: var(--text-primary);">${item.name}</td>
-          <td><span class="card-badge" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">${item.game || 'Arcade'}</span></td>
-          <td style="font-weight: 700; color: var(--accent-cyan); font-family: monospace;">${item.score.toLocaleString()}</td>
+        itemDiv.className = rankClass;
+        itemDiv.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-weight: 700; min-width: 45px;">${rankBadge}</span>
+            <span style="font-weight: 600; color: var(--text-primary);">${item.name}</span>
+            <span class="card-badge" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">${item.game || 'Arcade'}</span>
+          </div>
+          <div style="font-weight: 700; color: var(--accent-cyan); font-family: monospace;">
+            ${item.score.toLocaleString()} pts
+          </div>
         `;
-        leaderboardBody.appendChild(tr);
+        listContainer.appendChild(itemDiv);
       });
     }
 
@@ -1549,50 +1554,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openLeaderboardModal() {
-      if (leaderboardModal) {
-        leaderboardModal.classList.remove('hidden');
+      const modal = document.getElementById('leaderboard-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
         fetchOnlineLeaderboard();
       }
     }
 
     function closeLeaderboardModal() {
-      if (leaderboardModal) {
-        leaderboardModal.classList.add('hidden');
+      const modal = document.getElementById('leaderboard-modal');
+      if (modal) {
+        modal.classList.add('hidden');
       }
     }
 
-    // Leaderboard Event Listeners (Header & Overlay Buttons)
-    document.querySelectorAll('.leaderboard-toggle-btn, .leaderboard-overlay-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    // Delegated click listener for all leaderboard buttons
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('.leaderboard-toggle-btn, .leaderboard-overlay-btn, #leaderboard-toggle-btn');
+      if (target) {
+        e.preventDefault();
         e.stopPropagation();
         openLeaderboardModal();
-      });
+      }
     });
 
-    if (leaderboardCloseBtn) {
-      leaderboardCloseBtn.addEventListener('click', (e) => {
+    document.addEventListener('click', (e) => {
+      const closeTarget = e.target.closest('#close-leaderboard, #close-leaderboard-bottom-btn, .leaderboard-close-btn');
+      if (closeTarget) {
+        e.preventDefault();
         e.stopPropagation();
         closeLeaderboardModal();
-      });
-    }
+      }
+    });
 
-    if (leaderboardBottomCloseBtn) {
-      leaderboardBottomCloseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeLeaderboardModal();
-      });
-    }
-
-    if (leaderboardModal) {
-      leaderboardModal.addEventListener('click', (e) => {
-        if (e.target === leaderboardModal) {
+    const currentModal = document.getElementById('leaderboard-modal');
+    if (currentModal) {
+      currentModal.addEventListener('click', (e) => {
+        if (e.target === currentModal) {
           closeLeaderboardModal();
         }
       });
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && leaderboardModal && !leaderboardModal.classList.contains('hidden')) {
+      const modal = document.getElementById('leaderboard-modal');
+      if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
         closeLeaderboardModal();
       }
     });
