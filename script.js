@@ -1449,57 +1449,87 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ------------------------------------------------------------------------
-    // Global Online Leaderboard System (Fresh Reset Data & Storage)
+    // Completely Separated Per-Game Leaderboard System (Independent Keys & Endpoints)
     // ------------------------------------------------------------------------
-    const KVDB_ENDPOINT = 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_leaderboard_v2';
+    const LEADERBOARDS = {
+      'Photon Runner': {
+        key: 'yp_lb_runner_v3',
+        endpoint: 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_lb_runner_v3',
+        badgeColor: 'var(--gradient-accent)',
+        icon: '🔬',
+        defaults: [
+          { name: 'Dr. Park 🔬', score: 300, date: '2026-08-12' },
+          { name: 'OpticsDev', score: 180, date: '2026-08-12' },
+          { name: 'PhotonRider', score: 90, date: '2026-08-12' }
+        ]
+      },
+      'Slot Gate 3D': {
+        key: 'yp_lb_skyroads_v3',
+        endpoint: 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_lb_skyroads_v3',
+        badgeColor: 'var(--gradient-purple)',
+        icon: '🚀',
+        defaults: [
+          { name: 'Dr. Park 🔬', score: 400, date: '2026-08-12' },
+          { name: 'SpaceNavigator', score: 250, date: '2026-08-12' },
+          { name: 'LaserPilot', score: 120, date: '2026-08-12' }
+        ]
+      },
+      'Schrödinger Cat': {
+        key: 'yp_lb_schrodinger_v3',
+        endpoint: 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_lb_schrodinger_v3',
+        badgeColor: 'rgba(168, 85, 247, 0.4)',
+        icon: '🐱',
+        defaults: [
+          { name: 'QuantumCat 🐱', score: 2000, date: '2026-08-12' },
+          { name: 'Ψ-WaveObserver', score: 1500, date: '2026-08-12' },
+          { name: 'BoxTunnelMaster', score: 1000, date: '2026-08-12' }
+        ]
+      }
+    };
 
-    const leaderboardModal = document.getElementById('leaderboard-modal');
-    const leaderboardCloseBtn = document.getElementById('close-leaderboard');
-    const leaderboardBottomCloseBtn = document.getElementById('close-leaderboard-bottom-btn');
-    const nicknameInput = document.getElementById('nickname-input');
-    const submitScoreBtn = document.getElementById('submit-score-btn');
+    let activeLeaderboardGame = 'Photon Runner';
 
-    // Wipe old cached key if present
-    localStorage.removeItem('yp_cached_leaderboard');
-
-    let cachedLeaderboard = JSON.parse(localStorage.getItem('yp_leaderboard_v2') || '[]');
-
-    if (cachedLeaderboard.length === 0) {
-      cachedLeaderboard = [
-        { name: 'Dr. Park 🔬', score: 300, game: 'Photon Runner' },
-        { name: 'OpticsLab 🚀', score: 200, game: 'Slot Gate 3D' }
-      ];
+    function getLocalGameLeaderboard(gameName) {
+      const cfg = LEADERBOARDS[gameName];
+      if (!cfg) return [];
+      const saved = localStorage.getItem(cfg.key);
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+      return [...cfg.defaults];
     }
 
-    let activeLeaderboardFilter = 'all';
+    function setLocalGameLeaderboard(gameName, data) {
+      const cfg = LEADERBOARDS[gameName];
+      if (!cfg) return;
+      localStorage.setItem(cfg.key, JSON.stringify(data));
+    }
 
-    function renderLeaderboardTable(data, filter = activeLeaderboardFilter) {
+    function renderGameLeaderboard(gameName = activeLeaderboardGame) {
+      activeLeaderboardGame = gameName;
       const listContainer = document.getElementById('leaderboard-list');
       if (!listContainer) return;
       listContainer.innerHTML = '';
 
-      // Update tab active classes
+      // Update active tab buttons
       document.querySelectorAll('.leaderboard-tab').forEach(tab => {
-        if (tab.getAttribute('data-game-filter') === filter) {
+        if (tab.getAttribute('data-game-filter') === gameName) {
           tab.classList.add('active');
         } else {
           tab.classList.remove('active');
         }
       });
 
-      let filteredData = [...(data || [])];
-      if (filter !== 'all') {
-        filteredData = filteredData.filter(item => item.game === filter);
-      }
+      const data = getLocalGameLeaderboard(gameName);
+      const cfg = LEADERBOARDS[gameName] || { badgeColor: 'var(--gradient-accent)', icon: '🎮' };
 
-      if (!filteredData || filteredData.length === 0) {
-        const gameLabel = filter === 'all' ? 'any game' : filter;
-        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No scores registered for ${gameLabel} yet. Play to be the first!</div>`;
+      if (!data || data.length === 0) {
+        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No scores recorded for ${gameName} yet. Play to be the first!</div>`;
         return;
       }
 
-      filteredData.sort((a, b) => b.score - a.score);
-      const top10 = filteredData.slice(0, 10);
+      data.sort((a, b) => b.score - a.score);
+      const top10 = data.slice(0, 10);
 
       top10.forEach((item, index) => {
         const itemDiv = document.createElement('div');
@@ -1509,16 +1539,12 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (index === 1) { rankClass += ' rank-2'; rankBadge = '🥈 2nd'; }
         else if (index === 2) { rankClass += ' rank-3'; rankBadge = '🥉 3rd'; }
 
-        let gameBadgeColor = 'var(--gradient-accent)';
-        if (item.game === 'Slot Gate 3D') gameBadgeColor = 'var(--gradient-purple)';
-        else if (item.game === 'Schrödinger Cat') gameBadgeColor = 'rgba(168, 85, 247, 0.4)';
-
         itemDiv.className = rankClass;
         itemDiv.innerHTML = `
           <div style="display: flex; align-items: center; gap: 0.6rem;">
             <span style="font-weight: 700; min-width: 45px;">${rankBadge}</span>
             <span style="font-weight: 600; color: var(--text-primary);">${item.name}</span>
-            <span class="card-badge" style="font-size: 0.65rem; padding: 0.1rem 0.4rem; background: ${gameBadgeColor};">${item.game || 'Arcade'}</span>
+            <span class="card-badge" style="font-size: 0.65rem; padding: 0.1rem 0.4rem; background: ${cfg.badgeColor};">${cfg.icon} ${gameName}</span>
           </div>
           <div style="font-weight: 700; color: var(--accent-cyan); font-family: monospace;">
             ${item.score.toLocaleString()} pts
@@ -1528,20 +1554,24 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    async function fetchOnlineLeaderboard(filter = activeLeaderboardFilter) {
-      renderLeaderboardTable(cachedLeaderboard, filter);
+    async function fetchOnlineGameLeaderboard(gameName = activeLeaderboardGame) {
+      renderGameLeaderboard(gameName);
+      const cfg = LEADERBOARDS[gameName];
+      if (!cfg) return;
+
       try {
-        const res = await fetch(KVDB_ENDPOINT);
+        const res = await fetch(cfg.endpoint);
         if (res.ok) {
           const remoteData = await res.json();
           if (Array.isArray(remoteData) && remoteData.length > 0) {
-            cachedLeaderboard = remoteData;
-            localStorage.setItem('yp_cached_leaderboard', JSON.stringify(cachedLeaderboard));
-            renderLeaderboardTable(cachedLeaderboard, filter);
+            setLocalGameLeaderboard(gameName, remoteData);
+            if (activeLeaderboardGame === gameName) {
+              renderGameLeaderboard(gameName);
+            }
           }
         }
       } catch (err) {
-        console.log('Leaderboard offline fallback in use');
+        console.log(`Leaderboard offline fallback for ${gameName}`);
       }
     }
 
@@ -1549,45 +1579,48 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!nickname || nickname.trim() === '') nickname = 'Anonymous';
       nickname = nickname.trim().substring(0, 12);
 
-      cachedLeaderboard.push({
+      const cfg = LEADERBOARDS[gameName];
+      if (!cfg) return;
+
+      let list = getLocalGameLeaderboard(gameName);
+      list.push({
         name: nickname,
         score: score,
-        game: gameName,
         date: new Date().toISOString().split('T')[0]
       });
 
-      cachedLeaderboard.sort((a, b) => b.score - a.score);
-      cachedLeaderboard = cachedLeaderboard.slice(0, 30);
-      localStorage.setItem('yp_leaderboard_v2', JSON.stringify(cachedLeaderboard));
+      list.sort((a, b) => b.score - a.score);
+      list = list.slice(0, 20); // Keep top 20 separate for this game
+      setLocalGameLeaderboard(gameName, list);
 
       try {
-        await fetch(KVDB_ENDPOINT, {
+        await fetch(cfg.endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cachedLeaderboard)
+          body: JSON.stringify(list)
         });
       } catch (err) {
-        console.log('Online submit failed, cached locally');
+        console.log(`Cloud sync failed for ${gameName}, saved locally.`);
       }
 
-      activeLeaderboardFilter = gameName;
+      activeLeaderboardGame = gameName;
       openLeaderboardModal(gameName);
     }
 
-    function openLeaderboardModal(defaultGameFilter = null) {
+    function openLeaderboardModal(specificGame = null) {
       const modal = document.getElementById('leaderboard-modal');
       if (modal) {
-        if (defaultGameFilter) {
-          activeLeaderboardFilter = defaultGameFilter;
+        if (specificGame && LEADERBOARDS[specificGame]) {
+          activeLeaderboardGame = specificGame;
         } else if (activeGameMode === 'runner') {
-          activeLeaderboardFilter = 'Photon Runner';
+          activeLeaderboardGame = 'Photon Runner';
         } else if (activeGameMode === 'skyroads') {
-          activeLeaderboardFilter = 'Slot Gate 3D';
+          activeLeaderboardGame = 'Slot Gate 3D';
         } else if (activeGameMode === 'schrodinger') {
-          activeLeaderboardFilter = 'Schrödinger Cat';
+          activeLeaderboardGame = 'Schrödinger Cat';
         }
         modal.classList.remove('hidden');
-        fetchOnlineLeaderboard(activeLeaderboardFilter);
+        fetchOnlineGameLeaderboard(activeLeaderboardGame);
       }
     }
 
@@ -1604,9 +1637,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tabTarget) {
         e.preventDefault();
         e.stopPropagation();
-        const filter = tabTarget.getAttribute('data-game-filter') || 'all';
-        activeLeaderboardFilter = filter;
-        renderLeaderboardTable(cachedLeaderboard, filter);
+        const game = tabTarget.getAttribute('data-game-filter') || 'Photon Runner';
+        if (LEADERBOARDS[game]) {
+          fetchOnlineGameLeaderboard(game);
+        }
       }
     });
 
