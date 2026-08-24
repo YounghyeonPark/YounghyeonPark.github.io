@@ -1592,12 +1592,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ------------------------------------------------------------------------
-    // Completely Separated Per-Game Leaderboard System (Independent Keys & Endpoints)
+    // Per-Game Leaderboards, served by the Cloudflare Worker in leaderboard-worker/
+    //
+    // Leave LEADERBOARD_API empty to run local-only: scores persist in
+    // localStorage and no network calls are made. Set it to the deployed Worker
+    // URL (e.g. 'https://yp-leaderboard.<account>.workers.dev') to go online.
+    //
+    // Note there is no credential here any more. The client proposes a single
+    // entry and the Worker owns the merge, so nothing the browser sends can
+    // replace or erase the board.
     // ------------------------------------------------------------------------
+    const LEADERBOARD_API = '';
+
     const LEADERBOARDS = {
       'Photon Runner': {
         key: 'yp_lb_runner_v3',
-        endpoint: 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_lb_runner_v3',
+        slug: 'runner',
         badgeColor: 'var(--gradient-accent)',
         icon: '🔬',
         defaults: [
@@ -1608,18 +1618,18 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       'Slot Gate 3D': {
         key: 'yp_lb_skyroads_v3',
-        endpoint: 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_lb_skyroads_v3',
+        slug: 'slotgate',
         badgeColor: 'var(--gradient-purple)',
         icon: '🚀',
         defaults: [
           { name: 'Dr. Park 🔬', score: 400, date: '2026-08-12' },
-          { name: 'SpaceNavigator', score: 250, date: '2026-08-12' },
-          { name: 'LaserPilot', score: 120, date: '2026-08-12' }
+          { name: 'SpaceNavigator', score: 300, date: '2026-08-12' },
+          { name: 'LaserPilot', score: 200, date: '2026-08-12' }
         ]
       },
       'Schrödinger Cat': {
         key: 'yp_lb_schrodinger_v3',
-        endpoint: 'https://kvdb.io/8x83fM5uNnK5vK3Y2aZ4b1/yp_lb_schrodinger_v3',
+        slug: 'schrodinger',
         badgeColor: 'rgba(168, 85, 247, 0.4)',
         icon: '🐱',
         defaults: [
@@ -1740,15 +1750,26 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    function leaderboardUrl(cfg) {
+      if (!LEADERBOARD_API || !cfg || !cfg.slug) return null;
+      return `${LEADERBOARD_API.replace(/\/$/, '')}/scores/${cfg.slug}`;
+    }
+
     async function fetchOnlineGameLeaderboard(gameName = activeLeaderboardGame) {
       renderGameLeaderboard(gameName);
       const cfg = LEADERBOARDS[gameName];
       if (!cfg) return;
 
+      const url = leaderboardUrl(cfg);
+      if (!url) return; // Local-only mode: keep whatever localStorage holds.
+
       try {
-        const res = await fetch(cfg.endpoint);
+        const res = await fetch(url);
         if (res.ok) {
-          const remoteData = sanitizeLeaderboardData(await res.json());
+          const payload = await res.json();
+          // Still sanitised client-side: the server is the boundary, but the
+          // renderer should never depend on a remote party behaving.
+          const remoteData = sanitizeLeaderboardData(payload && payload.entries);
           if (remoteData.length > 0) {
             setLocalGameLeaderboard(gameName, remoteData);
             if (activeLeaderboardGame === gameName) {
@@ -1762,32 +1783,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function submitScoreToLeaderboard(nickname, score, gameName) {
-      if (!nickname || nickname.trim() === '') nickname = 'Anonymous';
-      nickname = nickname.trim().substring(0, 12);
-
       const cfg = LEADERBOARDS[gameName];
       if (!cfg) return;
 
+      const name = (nickname || '').trim().substring(0, 12) || 'Anonymous';
+
+      // Optimistic local update, so the board reflects the run even offline.
       let list = getLocalGameLeaderboard(gameName);
-      list.push({
-        name: nickname,
-        score: score,
-        date: new Date().toISOString().split('T')[0]
-      });
-
+      list.push({ name, score, date: new Date().toISOString().split('T')[0] });
       list.sort((a, b) => b.score - a.score);
-      list = list.slice(0, 20); // Keep top 20 separate for this game
-      setLocalGameLeaderboard(gameName, list);
+      setLocalGameLeaderboard(gameName, list.slice(0, 20));
 
-      try {
-        await fetch(cfg.endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(list)
-        });
-      } catch (err) {
-        console.log(`Cloud sync failed for ${gameName}, saved locally.`);
+      const url = leaderboardUrl(cfg);
+      if (url) {
+        try {
+          // One entry, not the whole list. The server merges and truncates, so a
+          // single request can no longer overwrite or wipe the board.
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, score })
+          });
+          if (res.ok) {
+            const payload = await res.json();
+            const merged = sanitizeLeaderboardData(payload && payload.entries);
+            if (merged.length > 0) setLocalGameLeaderboard(gameName, merged);
+          }
+        } catch (err) {
+          console.log(`Cloud sync failed for ${gameName}, saved locally.`);
+        }
       }
+
+      const submitBox = document.getElementById('score-submit-box');
+      if (submitBox) submitBox.style.display = 'none';
 
       activeLeaderboardGame = gameName;
       openLeaderboardModal(gameName);

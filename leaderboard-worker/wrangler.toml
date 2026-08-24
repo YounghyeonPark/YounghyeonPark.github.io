@@ -1,0 +1,14 @@
+name = "yp-leaderboard"
+main = "src/index.js"
+compatibility_date = "2026-08-24"
+
+# Origins permitted to call this API, comma separated.
+# Add "http://localhost:8000" while developing the site locally.
+[vars]
+ALLOWED_ORIGINS = "https://younghyeonpark.github.io"
+
+# Create with:  npx wrangler kv namespace create LEADERBOARD
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "LEADERBOARD"
+id = "PASTE_YOUR_KV_NAMESPACE_ID_HERE"
