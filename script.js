@@ -125,6 +125,35 @@ document.addEventListener('DOMContentLoaded', () => {
   if (canvas && overlay && startBtn) {
     const ctx = canvas.getContext('2d');
 
+    function setStartBtnVisible(visible) {
+      startBtn.classList.toggle('is-visible', visible);
+    }
+
+    function hideGameOverUI() {
+      setStartBtnVisible(false);
+      const submitBox = document.getElementById('score-submit-box');
+      if (submitBox) submitBox.style.display = 'none';
+    }
+
+    // Keep the canvas backing store in step with its CSS box. Debounced on a
+    // timer rather than rAF, which stalls in background tabs.
+    let resizeDebounceId = null;
+    function scheduleCanvasResize() {
+      if (resizeDebounceId) clearTimeout(resizeDebounceId);
+      resizeDebounceId = setTimeout(() => {
+        resizeDebounceId = null;
+        resizeRunnerCanvas();
+      }, 120);
+    }
+
+    // Only swallow a key the game actually consumes, so Space keeps scrolling the
+    // page when idle and stays typable inside the nickname field.
+    function isTypingTarget(target) {
+      if (!target) return false;
+      const tag = target.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+    }
+
     // ------------------------------------------------------------------------
     // GAME 1: 2D Photon Runner Engine
     // ------------------------------------------------------------------------
@@ -151,21 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let runnerObstacles = [];
     let runnerFrameCount = 0;
-
-    function resizeRunnerCanvas() {
-      const rect = canvas.getBoundingClientRect();
-      if (rect.width > 0) {
-        canvas.width = rect.width;
-        canvas.height = rect.height || 240;
-        runnerGroundY = canvas.height - 35;
-        runnerPlayer.x = Math.max(45, canvas.width * 0.1);
-
-        if (!runnerRunning && activeGameMode === 'runner') {
-          runnerPlayer.y = runnerGroundY - runnerPlayer.radius;
-          drawRunnerStatic();
-        }
-      }
-    }
 
     function drawRoundedRect(ctx, x, y, w, h, r) {
       if (w < 2 * r) r = w / 2;
@@ -200,16 +214,25 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerPlayer.vy = 0;
       runnerPlayer.isGrounded = true;
       runnerPlayer.trail = [];
+      hideGameOverUI();
       overlay.classList.add('hidden');
     }
+
+    let pendingSizeRetries = 0;
 
     function resizeRunnerCanvas() {
       const rect = canvas.getBoundingClientRect();
       if (rect.width > 0) {
+        pendingSizeRetries = 0;
         canvas.width = rect.width;
         canvas.height = rect.height || 240;
         runnerGroundY = canvas.height - 35;
         runnerPlayer.x = Math.max(45, canvas.width * 0.1);
+      } else if (pendingSizeRetries < 20) {
+        // Layout has not resolved yet (render-blocking CDN stylesheet in <head>).
+        // Retry instead of silently leaving the 300x150 default backing store.
+        pendingSizeRetries++;
+        scheduleCanvasResize();
       }
     }
 
@@ -362,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const submitBox = document.getElementById('score-submit-box');
       if (submitBox && runnerScore > 50) submitBox.style.display = 'flex';
+      setStartBtnVisible(true);
       if (gameModeCards) gameModeCards.style.display = 'flex';
       
       resizeRunnerCanvas();
@@ -535,6 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
       waveExplosionTimer = 0;
       // Initial gate
       spawnGate();
+      hideGameOverUI();
       overlay.classList.add('hidden');
     }
 
@@ -676,6 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const submitBox = document.getElementById('score-submit-box');
       if (submitBox && roadsScore > 50) submitBox.style.display = 'flex';
+      setStartBtnVisible(true);
       if (gameModeCards) gameModeCards.style.display = 'flex';
       
       resizeRunnerCanvas();
@@ -937,6 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
       schrodingerPlayer.vy = 0;
       schrodingerPlayer.isGrounded = true;
       schrodingerPlayer.trail = [];
+      hideGameOverUI();
       overlay.classList.add('hidden');
     }
 
@@ -1102,6 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const submitBox = document.getElementById('score-submit-box');
       if (submitBox && schrodingerScore > 50) submitBox.style.display = 'flex';
+      setStartBtnVisible(true);
       if (gameModeCards) gameModeCards.style.display = 'flex';
 
       resizeRunnerCanvas();
@@ -1342,6 +1370,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Unified Keyboard Listeners
     window.addEventListener('keydown', (e) => {
+      if (isTypingTarget(e.target)) return;
+
       const rect = canvas.getBoundingClientRect();
       const inView = (rect.top > -100 && rect.bottom < window.innerHeight + 100);
 
@@ -1349,41 +1379,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (activeGameMode === 'runner') {
         if (e.code === 'Space' || e.code === 'ArrowUp') {
-          e.preventDefault();
           if (runnerRunning && !runnerOver) {
+            e.preventDefault();
             jumpRunner();
           } else if (runnerOver && canRestart) {
+            e.preventDefault();
             startRunnerGame();
           }
         }
       } else if (activeGameMode === 'schrodinger') {
         if (e.code === 'ArrowUp' || e.code === 'KeyW') {
-          e.preventDefault();
           if (schrodingerRunning && !schrodingerOver) {
+            e.preventDefault();
             jumpSchrodinger();
           } else if (schrodingerOver && canRestart) {
+            e.preventDefault();
             startSchrodingerGame();
           }
         } else if (e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'KeyS') {
-          e.preventDefault();
           if (schrodingerRunning && !schrodingerOver) {
+            e.preventDefault();
             toggleSchrodingerState();
           } else if (schrodingerOver && canRestart) {
+            e.preventDefault();
             startSchrodingerGame();
           }
         }
       } else {
         if (e.code === 'Space' || e.code === 'ArrowUp') {
-          e.preventDefault();
           if (roadsOver && canRestart) {
+            e.preventDefault();
             startRoadsGame();
           }
         } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-          e.preventDefault();
-          moveLaneLeft();
+          if (roadsRunning && !roadsOver) {
+            e.preventDefault();
+            moveLaneLeft();
+          }
         } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-          e.preventDefault();
-          moveLaneRight();
+          if (roadsRunning && !roadsOver) {
+            e.preventDefault();
+            moveLaneRight();
+          }
         }
       }
     });
@@ -1489,12 +1526,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let activeLeaderboardGame = 'Photon Runner';
 
+    // Rows arrive from a public endpoint (and from localStorage, which may hold a
+    // previously fetched payload), so every field is treated as untrusted input.
+    function sanitizeLeaderboardData(raw) {
+      if (!Array.isArray(raw)) return [];
+      const clean = [];
+      raw.forEach(row => {
+        if (!row || typeof row !== 'object') return;
+        const score = Number(row.score);
+        if (!Number.isFinite(score) || score < 0 || score > 10000000) return;
+        const name = String(row.name == null ? '' : row.name).trim().substring(0, 12);
+        clean.push({
+          name: name || 'Anonymous',
+          score: Math.floor(score),
+          date: /^\d{4}-\d{2}-\d{2}$/.test(row.date) ? row.date : ''
+        });
+      });
+      return clean.slice(0, 50);
+    }
+
     function getLocalGameLeaderboard(gameName) {
       const cfg = LEADERBOARDS[gameName];
       if (!cfg) return [];
       const saved = localStorage.getItem(cfg.key);
       if (saved) {
-        try { return JSON.parse(saved); } catch (e) {}
+        try {
+          const parsed = sanitizeLeaderboardData(JSON.parse(saved));
+          if (parsed.length > 0) return parsed;
+        } catch (e) {}
       }
       return [...cfg.defaults];
     }
@@ -1502,7 +1561,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setLocalGameLeaderboard(gameName, data) {
       const cfg = LEADERBOARDS[gameName];
       if (!cfg) return;
-      localStorage.setItem(cfg.key, JSON.stringify(data));
+      localStorage.setItem(cfg.key, JSON.stringify(sanitizeLeaderboardData(data)));
     }
 
     function renderGameLeaderboard(gameName = activeLeaderboardGame) {
@@ -1524,7 +1583,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const cfg = LEADERBOARDS[gameName] || { badgeColor: 'var(--gradient-accent)', icon: '🎮' };
 
       if (!data || data.length === 0) {
-        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No scores recorded for ${gameName} yet. Play to be the first!</div>`;
+        const empty = document.createElement('div');
+        empty.className = 'leaderboard-empty';
+        empty.textContent = `No scores recorded for ${gameName} yet. Play to be the first!`;
+        listContainer.appendChild(empty);
         return;
       }
 
@@ -1540,16 +1602,34 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (index === 2) { rankClass += ' rank-3'; rankBadge = '🥉 3rd'; }
 
         itemDiv.className = rankClass;
-        itemDiv.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <span style="font-weight: 700; min-width: 45px;">${rankBadge}</span>
-            <span style="font-weight: 600; color: var(--text-primary);">${item.name}</span>
-            <span class="card-badge" style="font-size: 0.65rem; padding: 0.1rem 0.4rem; background: ${cfg.badgeColor};">${cfg.icon} ${gameName}</span>
-          </div>
-          <div style="font-weight: 700; color: var(--accent-cyan); font-family: monospace;">
-            ${item.score.toLocaleString()} pts
-          </div>
-        `;
+
+        const player = document.createElement('div');
+        player.className = 'leaderboard-player';
+
+        const rankEl = document.createElement('span');
+        rankEl.className = 'leaderboard-rank-badge';
+        rankEl.textContent = rankBadge;
+
+        // textContent, not innerHTML: nicknames are attacker-controllable.
+        const nameEl = document.createElement('span');
+        nameEl.className = 'leaderboard-name';
+        nameEl.textContent = item.name;
+
+        const badgeEl = document.createElement('span');
+        badgeEl.className = 'card-badge leaderboard-game-badge';
+        badgeEl.style.background = cfg.badgeColor;
+        badgeEl.textContent = `${cfg.icon} ${gameName}`;
+
+        player.appendChild(rankEl);
+        player.appendChild(nameEl);
+        player.appendChild(badgeEl);
+
+        const scoreEl = document.createElement('div');
+        scoreEl.className = 'leaderboard-score';
+        scoreEl.textContent = `${item.score.toLocaleString()} pts`;
+
+        itemDiv.appendChild(player);
+        itemDiv.appendChild(scoreEl);
         listContainer.appendChild(itemDiv);
       });
     }
@@ -1562,8 +1642,8 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const res = await fetch(cfg.endpoint);
         if (res.ok) {
-          const remoteData = await res.json();
-          if (Array.isArray(remoteData) && remoteData.length > 0) {
+          const remoteData = sanitizeLeaderboardData(await res.json());
+          if (remoteData.length > 0) {
             setLocalGameLeaderboard(gameName, remoteData);
             if (activeLeaderboardGame === gameName) {
               renderGameLeaderboard(gameName);
@@ -1679,6 +1759,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    const submitScoreBtn = document.getElementById('submit-score-btn');
+    const nicknameInput = document.getElementById('nickname-input');
+
     if (submitScoreBtn && nicknameInput) {
       submitScoreBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1699,18 +1782,27 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!canRestart) return;
-      if (activeGameMode === 'runner') {
-        resetRunner();
-        if (!runnerAnimId) loopRunner();
+      if (activeGameMode === 'schrodinger') {
+        startSchrodingerGame();
+      } else if (activeGameMode === 'skyroads') {
+        startRoadsGame();
       } else {
-        resetRoads();
-        if (!roadsAnimId) loopRoads();
+        startRunnerGame();
       }
     });
 
+    // First layout can land well after DOMContentLoaded (the render-blocking CDN
+    // stylesheet in <head>), so observe the element rather than guess with a delay.
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(scheduleCanvasResize).observe(canvas);
+    } else {
+      window.addEventListener('resize', scheduleCanvasResize);
+    }
+    // 'load' fires after the render-blocking stylesheets resolve, so this catches
+    // the first real layout even where ResizeObserver delivery is throttled.
+    window.addEventListener('load', scheduleCanvasResize);
+
     // Initial setup
-    setTimeout(() => {
-      resizeRunnerCanvas();
-    }, 100);
+    resizeRunnerCanvas();
   }
 });

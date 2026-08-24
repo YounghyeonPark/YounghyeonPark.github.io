@@ -402,6 +402,22 @@ section {
   cursor: pointer;
 }
 
+/* The arcade overlay and the leaderboard modal sit on the always-dark game
+   canvas, so they keep the dark palette in light mode too. Re-pin the inherited
+   colour tokens here instead of letting the light theme flip the text to near-
+   black on a near-black panel. */
+.game-overlay,
+.global-leaderboard-modal {
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(56, 189, 248, 0.3);
+  --bg-card: rgba(17, 24, 39, 0.75);
+  --bg-card-hover: rgba(31, 41, 55, 0.85);
+  --bg-glass: rgba(255, 255, 255, 0.03);
+}
+
 .game-overlay {
   position: absolute;
   top: 38px;
@@ -430,6 +446,14 @@ section {
 .game-overlay.hidden {
   opacity: 0;
   pointer-events: none;
+}
+
+#game-start-btn {
+  display: none;
+}
+
+#game-start-btn.is-visible {
+  display: inline-flex;
 }
 
 #game-status-title {
@@ -465,7 +489,7 @@ section {
   cursor: pointer;
   transition: all var(--transition-fast);
   display: flex;
-  flex-direction: flex-row;
+  flex-direction: row;
   align-items: center;
   gap: 0.75rem;
   min-width: 160px;
@@ -739,17 +763,43 @@ section {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  min-width: 0;
 }
 
 .leaderboard-rank-badge {
   font-weight: 700;
-  width: 24px;
-  text-align: center;
+  min-width: 45px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.leaderboard-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.leaderboard-game-badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 12px;
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .leaderboard-score {
   color: var(--accent-cyan);
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-code);
+  white-space: nowrap;
+}
+
+.leaderboard-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 1.5rem 0;
 }
 
 .hero-badge .pulse-dot {
