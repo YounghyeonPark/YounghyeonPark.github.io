@@ -320,14 +320,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let pendingSizeRetries = 0;
 
+    // Below this width the full HUD strings do not fit side by side.
+    const COMPACT_HUD_WIDTH = 420;
+
+    // Logical drawing size in CSS pixels. The backing store is larger on HiDPI
+    // screens; every game coordinate stays in these units.
+    let viewW = 300;
+    let viewH = 240;
+
     function resizeRunnerCanvas() {
       const rect = canvas.getBoundingClientRect();
       if (rect.width > 0) {
         pendingSizeRetries = 0;
-        canvas.width = rect.width;
-        canvas.height = rect.height || 240;
-        runnerGroundY = canvas.height - 35;
-        runnerPlayer.x = Math.max(45, canvas.width * 0.1);
+        viewW = rect.width;
+        viewH = rect.height || 240;
+        // Sizing the backing store in CSS pixels made the games render at
+        // 1/dpr resolution and get upscaled: visibly soft on any retina screen.
+        // Capped at 3 so a very high-dpi phone does not pay for a huge buffer.
+        const dpr = Math.min(3, window.devicePixelRatio || 1);
+        canvas.width = Math.round(viewW * dpr);
+        canvas.height = Math.round(viewH * dpr);
+        // Assigning width/height resets the context, so scale after, not before.
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        runnerGroundY = viewH - 35;
+        runnerPlayer.x = Math.max(45, viewW * 0.1);
       } else if (pendingSizeRetries < 20) {
         // Layout has not resolved yet (render-blocking CDN stylesheet in <head>).
         // Retry instead of silently leaving the 300x150 default backing store.
@@ -372,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       runnerObstacles.push({
-        x: canvas.width + 20,
+        x: viewW + 20,
         y: runnerGroundY - randomH,
         width: randomW,
         height: randomH,
@@ -382,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // Schedule NEXT spawn proportionally scaled with canvas width so wide screens get comfortable spacing
-      const widthRatio = canvas.width / 500;
+      const widthRatio = viewW / 500;
       const baseInterval = Math.floor(45 * Math.max(1.0, widthRatio));
       const randomExtra = Math.floor(Math.random() * (40 * Math.max(1.0, widthRatio)));
       nextRunnerSpawnFrame = runnerFrameCount + baseInterval + randomExtra;
@@ -498,15 +514,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawRunner() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, viewW, viewH);
 
       // Draw Grid Background Line
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 1;
-      for (let x = (runnerFrameCount * 2) % 40; x < canvas.width; x += 40) {
+      for (let x = (runnerFrameCount * 2) % 40; x < viewW; x += 40) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, viewH);
         ctx.stroke();
       }
 
@@ -515,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, runnerGroundY);
-      ctx.lineTo(canvas.width, runnerGroundY);
+      ctx.lineTo(viewW, runnerGroundY);
       ctx.stroke();
 
       // Draw Trail
@@ -589,16 +605,27 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.shadowBlur = 0;
       }
 
+      const compact = viewW < COMPACT_HUD_WIDTH;
+      let hudY = 22;
+
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText(`Distance: ${runnerScore} µm`, 16, 22);
-      ctx.fillText(`High: ${runnerHighScore} µm`, canvas.width - 120, 22);
+      ctx.fillText(`Distance: ${runnerScore} µm`, 16, hudY);
+      if (compact) {
+        hudY += 16;
+        ctx.fillText(`High: ${runnerHighScore} µm`, 16, hudY);
+      } else {
+        ctx.textAlign = 'right';
+        ctx.fillText(`High: ${runnerHighScore} µm`, viewW - 16, hudY);
+        ctx.textAlign = 'left';
+      }
 
       // Tunneling Charge Badge HUD
       if (tunnelingCharges > 0) {
+        hudY += 18;
         ctx.fillStyle = '#c084fc';
         ctx.font = 'bold 11px "Fira Code", monospace';
-        ctx.fillText(`Quantum Tunneling: ${'⚛'.repeat(Math.min(5, tunnelingCharges))} (${tunnelingCharges})`, 16, 40);
+        ctx.fillText(`⚛ Tunneling x${tunnelingCharges}`, 16, hudY);
       }
 
       // Unlock Notification Banner
@@ -606,7 +633,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = '#c084fc';
         ctx.font = 'bold 13px Outfit, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('⚛ QUANTUM TUNNELING UNLOCKED! (+1 Pass-Through)', canvas.width / 2, 58);
+        ctx.fillText(compact ? '⚛ TUNNELING +1' : '⚛ QUANTUM TUNNELING UNLOCKED! (+1 Pass-Through)',
+                     viewW / 2, hudY + 20);
         ctx.textAlign = 'left';
       }
     }
@@ -746,7 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const playerZ = 120;
       const fov = 280;
       const playerScale = fov / playerZ; // 2.333
-      const baseSlotSpacing = (canvas.width * 0.30) / playerScale;
+      const baseSlotSpacing = (viewW * 0.30) / playerScale;
 
       // Smooth 3D Lane Transition
       playerX3D += (targetLane * baseSlotSpacing - playerX3D) * Math.min(1.0, 0.38 * dt);
@@ -853,16 +881,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawRoads() {
       // Background Synthwave Deep Space (No ground road track lines)
       ctx.fillStyle = '#060814';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, viewW, viewH);
 
       const fov = 280;
-      const horizonY = canvas.height * 0.42;
-      const cx = canvas.width / 2;
+      const horizonY = viewH * 0.42;
+      const cx = viewW / 2;
 
       // Draw Starfield Background
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       for (let i = 0; i < 45; i++) {
-        const sx = (Math.sin(i * 99 + roadsScore * 0.01) * 0.5 + 0.5) * canvas.width;
+        const sx = (Math.sin(i * 99 + roadsScore * 0.01) * 0.5 + 0.5) * viewW;
         const sy = (Math.cos(i * 33 + roadsScore * 0.01) * 0.5 + 0.5) * horizonY;
         ctx.fillRect(sx, sy, 1.5, 1.5);
       }
@@ -870,7 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Draw Distant Horizon Glow Line
       ctx.beginPath();
       ctx.moveTo(0, horizonY);
-      ctx.lineTo(canvas.width, horizonY);
+      ctx.lineTo(viewW, horizonY);
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
       ctx.lineWidth = 1;
       ctx.stroke();
@@ -880,9 +908,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const playerZ = 120;
       const playerScale = fov / playerZ; // 2.333
-      const baseSlotSpacing = (canvas.width * 0.30) / playerScale;
+      const baseSlotSpacing = (viewW * 0.30) / playerScale;
       const slotOffsets = [-baseSlotSpacing, 0, baseSlotSpacing];
-      const slotWidth = (canvas.width * 0.26) / playerScale;
+      const slotWidth = (viewW * 0.26) / playerScale;
       const wallHeight3D = 170;
 
       sortedGates.forEach(gate => {
@@ -955,7 +983,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Draw Player 3D Volumetric Photon Sphere (Always visible on mobile & desktop!)
       const px = cx + (playerX3D * playerScale);
       const py = horizonY + (wallHeight3D * 0.25) * playerScale;
-      const photonRadius = Math.max(10, (canvas.width * 0.035) * (playerScale / 2.33));
+      const photonRadius = Math.max(10, (viewW * 0.035) * (playerScale / 2.33));
 
       // Quantum Superposition Wave Shockwave Aura (When active)
       if (superpositionCharges > 0) {
@@ -1021,20 +1049,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.font = 'bold 13px Outfit, sans-serif';
         ctx.fillStyle = '#38bdf8';
-        ctx.fillText('🌊 WALL VAPORIZED BY QUANTUM WAVE!', px - 110, py - 35);
+        ctx.textAlign = 'center';
+        ctx.fillText(viewW < COMPACT_HUD_WIDTH ? '🌊 WALL VAPORIZED!' : '🌊 WALL VAPORIZED BY QUANTUM WAVE!',
+                     viewW / 2, py - 35);
+        ctx.textAlign = 'left';
       }
 
       // HUD Text
+      const compact = viewW < COMPACT_HUD_WIDTH;
+      let hudY = 26;
+
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText(`Gates Cleared: ${clearedGateCount} (${roadsScore} pts)`, 16, 26);
-      ctx.fillText(`High: ${roadsHighScore} pts`, canvas.width - 145, 26);
+      ctx.fillText(compact ? `Gates: ${clearedGateCount} (${roadsScore} pts)`
+                           : `Gates Cleared: ${clearedGateCount} (${roadsScore} pts)`, 16, hudY);
+      if (compact) {
+        hudY += 16;
+        ctx.fillText(`High: ${roadsHighScore} pts`, 16, hudY);
+      } else {
+        ctx.textAlign = 'right';
+        ctx.fillText(`High: ${roadsHighScore} pts`, viewW - 16, hudY);
+        ctx.textAlign = 'left';
+      }
 
       // Superposition Wave Badge HUD
       if (superpositionCharges > 0) {
+        hudY += 18;
         ctx.fillStyle = '#38bdf8';
         ctx.font = 'bold 11px "Fira Code", monospace';
-        ctx.fillText(`Superposition Wave: ${'🌊'.repeat(superpositionCharges)} (${superpositionCharges})`, 16, 44);
+        ctx.fillText(`🌊 Superposition x${superpositionCharges}`, 16, hudY);
       }
 
       // Notification Banner
@@ -1042,7 +1085,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = '#38bdf8';
         ctx.font = 'bold 13px Outfit, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('🌊 QUANTUM SUPERPOSITION WAVE UNLOCKED! (+1 Wall Vaporizer)', canvas.width / 2, 40);
+        ctx.fillText(compact ? '🌊 WAVE +1' : '🌊 QUANTUM SUPERPOSITION WAVE UNLOCKED! (+1 Wall Vaporizer)',
+                     viewW / 2, hudY + 20);
         ctx.textAlign = 'left';
       }
     }
@@ -1141,9 +1185,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (chosenType === 'barrier') {
         // Laser barriers span high up so jumping cannot bypass them (forces Quantum Box Tunneling!)
-        const height = Math.max(160, canvas.height * 0.78);
+        const height = Math.max(160, viewH * 0.78);
         schrodingerElements.push({
-          x: canvas.width + 30,
+          x: viewW + 30,
           y: runnerGroundY - height,
           width: 24,
           height: height,
@@ -1153,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (chosenType === 'treat') {
         const treatY = runnerGroundY - 40 - Math.random() * 60;
         schrodingerElements.push({
-          x: canvas.width + 30,
+          x: viewW + 30,
           y: treatY,
           width: 24,
           height: 24,
@@ -1163,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         // Observer Camera (Forces observation)
         schrodingerElements.push({
-          x: canvas.width + 30,
+          x: viewW + 30,
           y: runnerGroundY - 90,
           width: 28,
           height: 28,
@@ -1276,15 +1320,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawSchrodinger() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, viewW, viewH);
 
       // Quantum Wave Background Grid
       ctx.strokeStyle = isObservedState ? 'rgba(56, 189, 248, 0.06)' : 'rgba(168, 85, 247, 0.08)';
       ctx.lineWidth = 1;
-      for (let x = (schrodingerFrameCount * 2) % 40; x < canvas.width; x += 40) {
+      for (let x = (schrodingerFrameCount * 2) % 40; x < viewW; x += 40) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, viewH);
         ctx.stroke();
       }
 
@@ -1293,7 +1337,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(0, runnerGroundY);
-      ctx.lineTo(canvas.width, runnerGroundY);
+      ctx.lineTo(viewW, runnerGroundY);
       ctx.stroke();
 
       // Draw Trail
@@ -1416,19 +1460,32 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // HUD Text
+      const compact = viewW < COMPACT_HUD_WIDTH;
+      let hudY = 26;
+
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText(`Score: ${schrodingerScore} pts`, 16, 26);
-      ctx.fillText(`High: ${schrodingerHighScore} pts`, canvas.width - 145, 26);
+      ctx.fillText(`Score: ${schrodingerScore} pts`, 16, hudY);
+      if (compact) {
+        hudY += 16;
+        ctx.fillText(`High: ${schrodingerHighScore} pts`, 16, hudY);
+      } else {
+        ctx.textAlign = 'right';
+        ctx.fillText(`High: ${schrodingerHighScore} pts`, viewW - 16, hudY);
+        ctx.textAlign = 'left';
+      }
 
-      // State Badge HUD
+      // State Badge HUD. The control hints also sit above the canvas in
+      // #game-hint-text, so the narrow variant drops them rather than overflow.
+      hudY += 22;
       ctx.font = '700 12px "Fira Code", monospace';
+      const controls = ' (Press ↑/W: Jump | Space/↓: State Toggle)';
       if (!isObservedState) {
         ctx.fillStyle = '#c084fc';
-        ctx.fillText(`STATE: 🔒 SUPERPOSITION (Press ↑/W: Jump | Space/↓: State Toggle)`, 16, 48);
+        ctx.fillText('STATE: 🔒 SUPERPOSITION' + (compact ? '' : controls), 16, hudY);
       } else {
         ctx.fillStyle = '#38bdf8';
-        ctx.fillText(`STATE: 🔓 OBSERVED CAT 🐱 (Press ↑/W: Jump | Space/↓: State Toggle)`, 16, 48);
+        ctx.fillText('STATE: 🔓 OBSERVED CAT 🐱' + (compact ? '' : controls), 16, hudY);
       }
     }
 
@@ -1959,9 +2016,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // stylesheet in <head>), so observe the element rather than guess with a delay.
     if (typeof ResizeObserver !== 'undefined') {
       new ResizeObserver(scheduleCanvasResize).observe(canvas);
-    } else {
-      window.addEventListener('resize', scheduleCanvasResize);
     }
+    // Also on window resize: it costs nothing, covers browsers without
+    // ResizeObserver, and catches a devicePixelRatio change (browser zoom, or
+    // dragging the window to a display with a different density) which would
+    // otherwise leave the backing store at the old scale.
+    window.addEventListener('resize', scheduleCanvasResize);
     // 'load' fires after the render-blocking stylesheets resolve, so this catches
     // the first real layout even where ResizeObserver delivery is throttled.
     window.addEventListener('load', scheduleCanvasResize);

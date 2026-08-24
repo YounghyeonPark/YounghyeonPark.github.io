@@ -88,7 +88,7 @@
 </head>
 <body>
 
-  <a href="#about" class="skip-link">Skip to main content</a>
+  <a href="#main" class="skip-link">Skip to main content</a>
 
   <!-- Navigation Bar -->
   <nav class="navbar">
@@ -116,11 +116,13 @@
           <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
         <a href="assets/pdf/Curriculum_Vitae_Younghyeon_Park.pdf" download class="btn btn-primary">
-          <i class="fas fa-file-pdf"></i> CV PDF
+          <i class="fas fa-file-pdf" aria-hidden="true"></i> CV PDF
         </a>
       </div>
     </div>
   </nav>
+
+  <main id="main" tabindex="-1">
 
   <!-- Hero Section -->
   <section id="about" class="hero">
@@ -130,8 +132,8 @@
         <div class="game-container" id="game-container">
           <div class="game-header">
             <div class="game-header-top">
-              <span class="game-title"><i class="fas fa-gamepad"></i> YP Arcade Hub</span>
-              <button id="leaderboard-toggle-btn" class="leaderboard-toggle-btn"><i class="fas fa-trophy"></i> Leaderboard</button>
+              <span class="game-title"><i class="fas fa-gamepad" aria-hidden="true"></i> YP Arcade Hub</span>
+              <button id="leaderboard-toggle-btn" class="leaderboard-toggle-btn"><i class="fas fa-trophy" aria-hidden="true"></i> Leaderboard</button>
             </div>
             <span id="game-hint-text" class="game-hint">Controls: Press <strong>Space / Tap</strong> to Play</span>
           </div>
@@ -146,18 +148,18 @@
               <div id="game-status-sub">Select a game mode to start playing!</div>
 
               <div style="margin: 0.4rem 0 0.8rem 0;">
-                <button class="leaderboard-toggle-btn leaderboard-overlay-btn" style="font-size: 0.8rem; padding: 0.35rem 0.8rem;"><i class="fas fa-trophy"></i> Hall of Fame / Leaderboard</button>
+                <button class="leaderboard-toggle-btn leaderboard-overlay-btn" style="font-size: 0.8rem; padding: 0.35rem 0.8rem;"><i class="fas fa-trophy" aria-hidden="true"></i> Hall of Fame / Leaderboard</button>
               </div>
               
               <div id="score-submit-box" class="score-submit-box" style="display: none;">
                 <input type="text" id="nickname-input" class="nickname-input" placeholder="Your Nickname" maxlength="12">
-                <button id="submit-score-btn" class="btn btn-outline btn-sm"><i class="fas fa-paper-plane"></i> Submit</button>
+                <button id="submit-score-btn" class="btn btn-outline btn-sm"><i class="fas fa-paper-plane" aria-hidden="true"></i> Submit</button>
               </div>
 
               <!-- Center Game Mode Selection Cards (Horizontal & Non-Clipping) -->
               <div id="game-mode-selector-cards" class="game-mode-selector-cards">
                 <button id="select-game-runner" class="game-select-card">
-                  <div class="card-icon"><i class="fas fa-microscope"></i></div>
+                  <div class="card-icon"><i class="fas fa-microscope" aria-hidden="true"></i></div>
                   <div class="card-info">
                     <div class="card-title">Photon Runner</div>
                     <div class="card-desc">2D Optics Jump</div>
@@ -166,7 +168,7 @@
                 </button>
                 
                 <button id="select-game-skyroads" class="game-select-card">
-                  <div class="card-icon"><i class="fas fa-border-all"></i></div>
+                  <div class="card-icon"><i class="fas fa-border-all" aria-hidden="true"></i></div>
                   <div class="card-info">
                     <div class="card-title">Slot Gate 3D</div>
                     <div class="card-desc">Wall Pass-Through</div>
@@ -175,7 +177,7 @@
                 </button>
 
                 <button id="select-game-schrodinger" class="game-select-card">
-                  <div class="card-icon" style="color: #c084fc;"><i class="fas fa-cat"></i></div>
+                  <div class="card-icon" style="color: #c084fc;"><i class="fas fa-cat" aria-hidden="true"></i></div>
                   <div class="card-info">
                     <div class="card-title">Schrödinger Cat</div>
                     <div class="card-desc">Jump & Quantum Switch</div>
@@ -184,7 +186,7 @@
                 </button>
               </div>
 
-              <button id="game-start-btn" class="btn btn-primary"><i class="fas fa-play"></i> Start Game</button>
+              <button id="game-start-btn" class="btn btn-primary"><i class="fas fa-play" aria-hidden="true"></i> Start Game</button>
             </div>
           </div>
 
@@ -201,9 +203,9 @@
 
               <!-- Separate Game Leaderboard Tabs -->
               <div class="leaderboard-tabs" id="leaderboard-tabs">
-                <button class="leaderboard-tab active" data-game-filter="Photon Runner"><i class="fas fa-microscope"></i> Photon Runner</button>
-                <button class="leaderboard-tab" data-game-filter="Slot Gate 3D"><i class="fas fa-border-all"></i> Slot Gate 3D</button>
-                <button class="leaderboard-tab" data-game-filter="Schrödinger Cat"><i class="fas fa-cat"></i> Schrödinger Cat</button>
+                <button class="leaderboard-tab active" data-game-filter="Photon Runner"><i class="fas fa-microscope" aria-hidden="true"></i> Photon Runner</button>
+                <button class="leaderboard-tab" data-game-filter="Slot Gate 3D"><i class="fas fa-border-all" aria-hidden="true"></i> Slot Gate 3D</button>
+                <button class="leaderboard-tab" data-game-filter="Schrödinger Cat"><i class="fas fa-cat" aria-hidden="true"></i> Schrödinger Cat</button>
               </div>
               
               <div class="leaderboard-modal-body">
@@ -213,7 +215,7 @@
               </div>
 
               <div class="leaderboard-modal-footer">
-                <button id="close-leaderboard-bottom-btn" class="btn btn-outline" style="width: 100%;"><i class="fas fa-times"></i> Close Leaderboard</button>
+                <button id="close-leaderboard-bottom-btn" class="btn btn-outline" style="width: 100%;"><i class="fas fa-times" aria-hidden="true"></i> Close Leaderboard</button>
               </div>
             </div>
           </div>
@@ -232,7 +234,7 @@
           </h1>
           
           <p class="hero-role">
-            Computational Imaging Specialist & System Architect
+            Computational Imaging Engineer & System Architect
           </p>
           
           <p class="hero-desc">
@@ -241,19 +243,19 @@
 
           <div class="hero-buttons">
             <a href="#projects" class="btn btn-primary">
-              <i class="fas fa-microscope"></i> Explore Research
+              <i class="fas fa-microscope" aria-hidden="true"></i> Explore Research
             </a>
             <a href="https://github.com/YounghyeonPark" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
-              <i class="fab fa-github"></i> GitHub Profile
+              <i class="fab fa-github" aria-hidden="true"></i> GitHub Profile
             </a>
             <a href="https://orcid.org/0000-0002-4733-5049/" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="btn btn-outline" style="color: #a6ce39; border-color: rgba(166, 206, 57, 0.4);">
-              <i class="fab fa-orcid"></i> ORCID iD
+              <i class="fab fa-orcid" aria-hidden="true"></i> ORCID iD
             </a>
             <a href="https://github.com/sponsors/YounghyeonPark" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="color: #ffca28; border-color: rgba(255, 202, 40, 0.45); background: rgba(255, 202, 40, 0.08);">
-              <i class="fas fa-coffee"></i> Coffee Me ☕
+              <i class="fas fa-coffee" aria-hidden="true"></i> Coffee Me ☕
             </a>
             <a href="#contact" class="btn btn-outline">
-              <i class="fas fa-envelope"></i> Contact Me
+              <i class="fas fa-envelope" aria-hidden="true"></i> Contact Me
             </a>
           </div>
 
@@ -267,7 +269,7 @@
               <div class="stat-label">Patents Registered/App</div>
             </div>
             <div class="stat-item">
-              <div class="stat-num">15<span>+</span></div>
+              <div class="stat-num">20<span>+</span></div>
               <div class="stat-label">Years R&D Experience</div>
             </div>
           </div>
@@ -286,19 +288,19 @@
             
             <div class="hero-details-list">
               <div class="hero-details-item">
-                <i class="fas fa-graduation-cap"></i>
+                <i class="fas fa-graduation-cap" aria-hidden="true"></i>
                 <span>Ph.D. in Electrical & Computer Eng. (SKKU)</span>
               </div>
               <div class="hero-details-item">
-                <i class="fas fa-envelope"></i>
+                <i class="fas fa-envelope" aria-hidden="true"></i>
                 <span>ypark@curibio.com</span>
               </div>
               <div class="hero-details-item">
-                <i class="fas fa-envelope"></i>
+                <i class="fas fa-envelope" aria-hidden="true"></i>
                 <span>ypark.dev@gmail.com</span>
               </div>
               <div class="hero-details-item">
-                <i class="fas fa-location-dot"></i>
+                <i class="fas fa-location-dot" aria-hidden="true"></i>
                 <span>Pangyo-ro 242, Bundang-gu, Seongnam-si, Korea</span>
               </div>
 
@@ -320,7 +322,7 @@
       <div class="expertise-grid">
         <div class="expertise-card">
           <div class="expertise-icon">
-            <i class="fas fa-eye"></i>
+            <i class="fas fa-eye" aria-hidden="true"></i>
           </div>
           <h3 class="expertise-title">Computational Photography & Optics</h3>
           <p class="expertise-desc">
@@ -336,7 +338,7 @@
 
         <div class="expertise-card">
           <div class="expertise-icon">
-            <i class="fas fa-microchip"></i>
+            <i class="fas fa-microchip" aria-hidden="true"></i>
           </div>
           <h3 class="expertise-title">Hardware & Board Level Design</h3>
           <p class="expertise-desc">
@@ -352,7 +354,7 @@
 
         <div class="expertise-card">
           <div class="expertise-icon">
-            <i class="fas fa-brain"></i>
+            <i class="fas fa-brain" aria-hidden="true"></i>
           </div>
           <h3 class="expertise-title">AI & Video Signal Processing</h3>
           <p class="expertise-desc">
@@ -471,7 +473,7 @@
           <div>
             <div class="project-meta-row">
               <div class="project-period">2021 – Present</div>
-              <span class="project-visibility private"><i class="fas fa-lock"></i> Private</span>
+              <span class="project-visibility private"><i class="fas fa-lock" aria-hidden="true"></i> Private</span>
             </div>
             <h3 class="project-title">Single-Shot 3D Sample Imaging via Light-Field Technology</h3>
             <p class="project-desc">High-speed volumetric 3D imaging using customized Fourier light-field microscopy setup.</p>
@@ -482,7 +484,7 @@
             </ul>
           </div>
           <div>
-            <span class="project-sponsor"><i class="fas fa-building"></i> KIAT Supported (Proprietary / Curi Bio)</span>
+            <span class="project-sponsor"><i class="fas fa-building" aria-hidden="true"></i> KIAT Supported (Proprietary / Curi Bio)</span>
           </div>
         </div>
 
@@ -491,7 +493,7 @@
           <div>
             <div class="project-meta-row">
               <div class="project-period">2020 – 2021</div>
-              <span class="project-visibility private"><i class="fas fa-lock"></i> Private</span>
+              <span class="project-visibility private"><i class="fas fa-lock" aria-hidden="true"></i> Private</span>
             </div>
             <h3 class="project-title">Antimicrobial Susceptibility Testing (AST) Device</h3>
             <p class="project-desc">Rapid pathogen detection and culture-free antimicrobial assay platform.</p>
@@ -502,7 +504,7 @@
             </ul>
           </div>
           <div>
-            <span class="project-sponsor"><i class="fas fa-seedling"></i> Startup Grant Supported (Proprietary / Quvit Bio)</span>
+            <span class="project-sponsor"><i class="fas fa-seedling" aria-hidden="true"></i> Startup Grant Supported (Proprietary / Quvit Bio)</span>
           </div>
         </div>
 
@@ -511,7 +513,7 @@
           <div>
             <div class="project-meta-row">
               <div class="project-period">2018 – 2022</div>
-              <span class="project-visibility private"><i class="fas fa-lock"></i> Private</span>
+              <span class="project-visibility private"><i class="fas fa-lock" aria-hidden="true"></i> Private</span>
             </div>
             <h3 class="project-title">Computational Multispectral Video System using Coded Illumination</h3>
             <p class="project-desc">Novel video camera for low-light & high-speed multispectral acquisition.</p>
@@ -521,7 +523,7 @@
             </ul>
           </div>
           <div>
-            <span class="project-sponsor"><i class="fas fa-university"></i> IITP Supported (Institutional)</span>
+            <span class="project-sponsor"><i class="fas fa-university" aria-hidden="true"></i> IITP Supported (Institutional)</span>
           </div>
         </div>
 
@@ -530,7 +532,7 @@
           <div>
             <div class="project-meta-row">
               <div class="project-period">2016 – 2018</div>
-              <span class="project-visibility public"><i class="fab fa-github"></i> Public</span>
+              <span class="project-visibility public"><i class="fab fa-github" aria-hidden="true"></i> Public</span>
             </div>
             <h3 class="project-title">Deep Learning Visible & NIR Image Separation</h3>
             <p class="project-desc">Separate RGB and Near-Infrared spectra from single-sensor mosaic images using neural networks.</p>
@@ -540,8 +542,8 @@
             </ul>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <span class="project-sponsor"><i class="fas fa-award"></i> NRF Supported</span>
-            <a href="https://github.com/YounghyeonPark/cmyg-to-vis-nir" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github"></i> GitHub Repo</a>
+            <span class="project-sponsor"><i class="fas fa-award" aria-hidden="true"></i> NRF Supported</span>
+            <a href="https://github.com/YounghyeonPark/cmyg-to-vis-nir" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github" aria-hidden="true"></i> GitHub Repo</a>
           </div>
         </div>
 
@@ -550,7 +552,7 @@
           <div>
             <div class="project-meta-row">
               <div class="project-period">2026 – Present</div>
-              <span class="project-visibility public"><i class="fab fa-github"></i> Public</span>
+              <span class="project-visibility public"><i class="fab fa-github" aria-hidden="true"></i> Public</span>
             </div>
             <h3 class="project-title">agbrte (Agent Bridge Terminal)</h3>
             <p class="project-desc">Agent sessions that live on a host, not in a window: attach from the desktop app, a phone browser, or a CLI.</p>
@@ -561,8 +563,8 @@
             </ul>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <span class="project-sponsor"><i class="fas fa-user-code"></i> Personal Project</span>
-            <a href="https://github.com/YounghyeonPark/agbrte" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github"></i> GitHub Repo</a>
+            <span class="project-sponsor"><i class="fas fa-user-code" aria-hidden="true"></i> Personal Project</span>
+            <a href="https://github.com/YounghyeonPark/agbrte" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github" aria-hidden="true"></i> GitHub Repo</a>
           </div>
         </div>
 
@@ -571,7 +573,7 @@
           <div>
             <div class="project-meta-row">
               <div class="project-period">2026 – Present</div>
-              <span class="project-visibility public"><i class="fab fa-github"></i> Public</span>
+              <span class="project-visibility public"><i class="fab fa-github" aria-hidden="true"></i> Public</span>
             </div>
             <h3 class="project-title">dualis (Multi-Domain Physics Engine in Rust)</h3>
             <p class="project-desc">Physics for simulated worlds in Rust with 6 physics domains: optics, heat, mechanics, acoustics, molecular dynamics, & electrical.</p>
@@ -582,8 +584,8 @@
             </ul>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <span class="project-sponsor"><i class="fas fa-user-code"></i> Personal Project</span>
-            <a href="https://github.com/YounghyeonPark/dualis" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github"></i> GitHub Repo</a>
+            <span class="project-sponsor"><i class="fas fa-user-code" aria-hidden="true"></i> Personal Project</span>
+            <a href="https://github.com/YounghyeonPark/dualis" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github" aria-hidden="true"></i> GitHub Repo</a>
           </div>
         </div>
 
@@ -592,9 +594,9 @@
           <div>
             <div class="project-meta-row">
               <div class="project-period">2026 – Present</div>
-              <span class="project-visibility public"><i class="fab fa-github"></i> Public</span>
+              <span class="project-visibility public"><i class="fab fa-github" aria-hidden="true"></i> Public</span>
             </div>
-            <h3 class="project-title"><i class="fas fa-cat" style="color: var(--accent-cyan); margin-right: 0.35rem;"></i> Cat Robot Project (T.O.M.C.A.T. & Sabo Quadruped)</h3>
+            <h3 class="project-title"><i class="fas fa-cat" aria-hidden="true" style="color: var(--accent-cyan); margin-right: 0.35rem;"></i> Cat Robot Project (T.O.M.C.A.T. & Sabo Quadruped)</h3>
             <p class="project-desc">Feline biomimetic quadruped robot featuring tendon-operated compliant actuation and PPO reinforcement learning locomotion.</p>
             <ul class="project-bullets">
               <li>Biomimetic feline musculoskeletal structure using synthetic tendons & rotary actuators for shock absorption.</li>
@@ -603,10 +605,10 @@
             </ul>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <span class="project-sponsor"><i class="fas fa-cat"></i> Personal Project</span>
+            <span class="project-sponsor"><i class="fas fa-cat" aria-hidden="true"></i> Personal Project</span>
             <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-              <a href="https://github.com/YounghyeonPark/tomcat" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github"></i> tomcat</a>
-              <a href="https://github.com/YounghyeonPark/sabo-quadruped" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github"></i> sabo-quadruped</a>
+              <a href="https://github.com/YounghyeonPark/tomcat" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github" aria-hidden="true"></i> tomcat</a>
+              <a href="https://github.com/YounghyeonPark/sabo-quadruped" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;"><i class="fab fa-github" aria-hidden="true"></i> sabo-quadruped</a>
             </div>
           </div>
         </div>
@@ -654,7 +656,7 @@
             <p class="pub-venue">Sungkyunkwan University R&DB Foundation | US 2024/0273687 A1, KR 10-2735759 (2024)</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('B. Jeon, J. Lee, Y. Park, Method of deblurring motion in light field image and device therefor, US 2024/0273687 A1, KR 10-2735759.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('B. Jeon, J. Lee, Y. Park, Method of deblurring motion in light field image and device therefor, US 2024/0273687 A1, KR 10-2735759.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -667,7 +669,7 @@
             <p class="pub-venue">Quvit Bio, Inc. | US 12598400B2, KR 10-2764645 (2024)</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('W. Lee, Y. Park, LIGHT FIELD MICROSCOPY-BASED IMAGE ACQUISITION METHOD AND DEVICE, US 12598400B2, KR 10-2764645.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('W. Lee, Y. Park, LIGHT FIELD MICROSCOPY-BASED IMAGE ACQUISITION METHOD AND DEVICE, US 12598400B2, KR 10-2764645.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -680,7 +682,7 @@
             <p class="pub-venue">ACS Sensors, Vol. 7, No. 8, pp. 2188-2197, Aug. 2022</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('S. Kaushal et al., Culture-free quantification of bacteria using digital fluorescence imaging in a tunable magnetic capturing cartridge for onsite food testing, ACS Sensors, 2022.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('S. Kaushal et al., Culture-free quantification of bacteria using digital fluorescence imaging in a tunable magnetic capturing cartridge for onsite food testing, ACS Sensors, 2022.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -693,7 +695,7 @@
             <p class="pub-venue">MDPI Sensors, Vol. 20, No. 19, pp. 5578, Sep. 2020</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, An Acquisition Method for Visible and Near Infrared Images from Single CMYG Color Filter Array-based Sensor, MDPI Sensors, 2020.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, An Acquisition Method for Visible and Near Infrared Images from Single CMYG Color Filter Array-based Sensor, MDPI Sensors, 2020.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -706,7 +708,7 @@
             <p class="pub-venue">Biosensors and Bioelectronics, Vol. 152, Jan. 2020</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('W.-I. Lee, Y. Park et al., A fully integrated bacterial pathogen detection system based on count-on-a-cartridge platform..., Biosensors and Bioelectronics, 2020.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('W.-I. Lee, Y. Park et al., A fully integrated bacterial pathogen detection system based on count-on-a-cartridge platform..., Biosensors and Bioelectronics, 2020.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -719,7 +721,7 @@
             <p class="pub-venue">Lab on a Chip, Vol. 19, No. 8, pp. 1502-1511, Mar. 2019</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('W.-I. Lee, Y. Park et al., A smartphone fluorescence imaging-based mobile biosensing system..., Lab on a Chip, 2019.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('W.-I. Lee, Y. Park et al., A smartphone fluorescence imaging-based mobile biosensing system..., Lab on a Chip, 2019.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -732,7 +734,7 @@
             <p class="pub-venue">IEEE International Conference on Electronics, Information, and Communication (ICEIC 2018), Hawaii</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, Visible and near-infrared separation using conditional generative adversarial network, ICEIC 2018.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, Visible and near-infrared separation using conditional generative adversarial network, ICEIC 2018.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -745,7 +747,7 @@
             <p class="pub-venue">10th International Conference on Communications, Circuits and Systems (ICCCAS), Dec. 2018</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, Spatially High Resolution Visible and Near-Infrared Separation using cGAN..., ICCCAS 2018.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, Spatially High Resolution Visible and Near-Infrared Separation using cGAN..., ICCCAS 2018.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -758,7 +760,7 @@
             <p class="pub-venue">Samsung Electronics Co., Ltd. & SKKU | US 10027933 B2, KR 10-2287944</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('K.-H. Won et al., Method and Apparatus for Outputting Images, US 10027933 B2.')"><i class="fas fa-quote-right"></i> Copy</button>
+            <button class="btn-copy-citation" onclick="copyCitation('K.-H. Won et al., Method and Apparatus for Outputting Images, US 10027933 B2.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
       </div>
@@ -776,7 +778,7 @@
       <div class="skills-grid">
         <!-- Category 1: Optics & Computational Imaging -->
         <div class="skill-category-card">
-          <h3 class="skill-category-title"><i class="fas fa-microscope"></i> Optics & Computational Imaging</h3>
+          <h3 class="skill-category-title"><i class="fas fa-microscope" aria-hidden="true"></i> Optics & Computational Imaging</h3>
           <div class="skill-tags-group">
             <div class="skill-tag-pill">
               <span class="tag-name">Light-Field Microscopy</span>
@@ -799,7 +801,7 @@
 
         <!-- Category 2: Programming & Languages -->
         <div class="skill-category-card">
-          <h3 class="skill-category-title"><i class="fas fa-code"></i> Programming & Languages</h3>
+          <h3 class="skill-category-title"><i class="fas fa-code" aria-hidden="true"></i> Programming & Languages</h3>
           <div class="skill-tags-group">
             <div class="skill-tag-pill">
               <span class="tag-name">C / C++</span>
@@ -826,7 +828,7 @@
 
         <!-- Category 3: Hardware & Embedded Engineering -->
         <div class="skill-category-card">
-          <h3 class="skill-category-title"><i class="fas fa-microchip"></i> Hardware & Embedded Systems</h3>
+          <h3 class="skill-category-title"><i class="fas fa-microchip" aria-hidden="true"></i> Hardware & Embedded Systems</h3>
           <div class="skill-tags-group">
             <div class="skill-tag-pill">
               <span class="tag-name">PCB Design & EDA</span>
@@ -849,7 +851,7 @@
 
         <!-- Category 4: Codec, AI & Toolchain -->
         <div class="skill-category-card">
-          <h3 class="skill-category-title"><i class="fas fa-layer-group"></i> Codec, AI & Toolchain</h3>
+          <h3 class="skill-category-title"><i class="fas fa-layer-group" aria-hidden="true"></i> Codec, AI & Toolchain</h3>
           <div class="skill-tags-group">
             <div class="skill-tag-pill">
               <span class="tag-name">Video Codecs</span>
@@ -869,6 +871,8 @@
     </div>
   </section>
 
+  </main>
+
   <!-- Footer Section -->
   <footer id="contact" class="footer">
     <div class="container">
@@ -882,14 +886,14 @@
         <div>
           <h4 class="footer-links-title">Contact & Social</h4>
           <ul class="footer-links-list">
-            <li><i class="fas fa-envelope"></i> <a href="mailto:ypark@curibio.com">ypark@curibio.com</a></li>
-            <li><i class="fas fa-envelope"></i> <a href="mailto:ypark.dev@gmail.com">ypark.dev@gmail.com</a></li>
-            <li><i class="fab fa-github"></i> <a href="https://github.com/YounghyeonPark" target="_blank" rel="noopener noreferrer">github.com/YounghyeonPark</a></li>
-            <li><i class="fas fa-location-dot"></i> Room C802, Pangyo-ro 242, Bundang-gu, Seongnam-si, Korea</li>
+            <li><i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:ypark@curibio.com">ypark@curibio.com</a></li>
+            <li><i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:ypark.dev@gmail.com">ypark.dev@gmail.com</a></li>
+            <li><i class="fab fa-github" aria-hidden="true"></i> <a href="https://github.com/YounghyeonPark" target="_blank" rel="noopener noreferrer">github.com/YounghyeonPark</a></li>
+            <li><i class="fas fa-location-dot" aria-hidden="true"></i> Room C802, Pangyo-ro 242, Bundang-gu, Seongnam-si, Korea</li>
           </ul>
           <div style="margin-top: 0.85rem;">
             <a href="https://github.com/sponsors/YounghyeonPark" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="color: #ffca28; border-color: rgba(255, 202, 40, 0.45); background: rgba(255, 202, 40, 0.08); font-size: 0.8rem;">
-              <i class="fas fa-coffee"></i> Support Research (Coffee Me ☕)
+              <i class="fas fa-coffee" aria-hidden="true"></i> Support Research (Coffee Me ☕)
             </a>
           </div>
         </div>
