@@ -188,7 +188,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2600);
   }
 
-  window.copyCitation = function(text) {
+  // Bound here rather than with an inline onclick, so the CSP can refuse
+  // 'unsafe-inline' for scripts.
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-citation]');
+    if (btn) copyCitation(btn.getAttribute('data-citation'));
+  });
+
+  // Avatar fallback, previously an inline onerror attribute.
+  document.querySelectorAll('img[data-fallback-src]').forEach(img => {
+    img.addEventListener('error', function onImgError() {
+      img.removeEventListener('error', onImgError);
+      img.src = img.getAttribute('data-fallback-src');
+    });
+  });
+
+  function copyCitation(text) {
     if (!navigator.clipboard) {
       showToast('Clipboard unavailable in this browser.', true);
       return;
@@ -199,7 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Failed to copy: ', err);
       showToast('Could not copy the citation.', true);
     });
-  };
+  }
+
+  // Kept on window: the previous inline handlers called it by name.
+  window.copyCitation = copyCitation;
 
   // ==========================================================================
   // 5. Dual Game Arcade Hub: Photon Runner (2D) & Slot Roads (3D)

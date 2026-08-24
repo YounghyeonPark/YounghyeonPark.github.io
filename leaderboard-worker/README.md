@@ -110,6 +110,14 @@ const LEADERBOARD_API = 'https://yp-leaderboard.<account>.workers.dev';
 While it is left empty the site runs in local-only mode: scores persist in
 `localStorage` and no network calls are made. Nothing breaks before you deploy.
 
+**Also update the Content-Security-Policy.** `index.html` ships with
+`connect-src 'self'`, so the browser will block requests to the Worker until its
+origin is listed:
+
+```
+connect-src 'self' https://yp-leaderboard.<account>.workers.dev;
+```
+
 ## Test
 
 ```bash

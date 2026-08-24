@@ -20,7 +20,7 @@
 
   --text-primary: #f3f4f6;
   --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
+  --text-muted: #7c8797;   /* was #6b7280: 3.96:1 on --bg-primary, under AA */
 
   --accent-cyan: #38bdf8;
   --accent-teal: #14b8a6;
@@ -53,11 +53,20 @@
   --bg-card-hover: rgba(241, 245, 249, 0.95);
   --bg-glass: rgba(0, 0, 0, 0.02);
   --border-color: rgba(0, 0, 0, 0.08);
-  --border-highlight: rgba(14, 165, 233, 0.4);
 
   --text-primary: #0f172a;
   --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-muted: #64748b;   /* was #94a3b8: 2.45:1 */
+
+  /* The dark-theme accents are far too light on a light page. Measured against
+     --bg-primary #f8fafc: cyan 2.05:1, teal 2.38:1, purple 3.78:1, and white
+     text on the cyan/blue button gradient only 2.14:1. These darker variants
+     clear AA both as text and as a background for white text. */
+  --accent-cyan: #0369a1;
+  --accent-teal: #0f766e;
+  --accent-blue: #2563eb;
+  --accent-purple: #7e22ce;
+  --border-highlight: rgba(3, 105, 161, 0.45);
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -473,6 +482,12 @@ section {
   --bg-card: rgba(17, 24, 39, 0.75);
   --bg-card-hover: rgba(31, 41, 55, 0.85);
   --bg-glass: rgba(255, 255, 255, 0.03);
+  /* Accents too: the light theme darkens these for a light page, which would
+     be unreadable against these panels' fixed dark background. */
+  --accent-cyan: #38bdf8;
+  --accent-teal: #14b8a6;
+  --accent-blue: #3b82f6;
+  --accent-purple: #a855f7;
 }
 
 .game-overlay {
@@ -1685,5 +1700,110 @@ section {
 
   .pub-actions {
     justify-content: flex-start;
+  }
+}
+
+/* --- Print ---------------------------------------------------------------
+   This doubles as a CV, so it will be printed. Drop the interactive furniture,
+   put ink-friendly colours back, and expose link targets. */
+@media print {
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #ffffff;
+    --bg-glass: #ffffff;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --text-muted: #555555;
+    --border-color: #cccccc;
+    --border-highlight: #999999;
+    --accent-cyan: #14507a;
+    --accent-teal: #14507a;
+    --accent-blue: #14507a;
+    --accent-purple: #14507a;
+    --shadow-sm: none;
+    --shadow-lg: none;
+    --shadow-glow: none;
+  }
+
+  /* Interactive-only furniture. */
+  .navbar,
+  .hero-game-wrapper,
+  .global-leaderboard-modal,
+  .app-toast,
+  .skip-link,
+  .hero-buttons,
+  .pub-controls,
+  .pub-actions,
+  .nav-toggle {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-size: 11pt;
+  }
+
+  section {
+    padding: 1.25rem 0;
+    break-inside: avoid;
+  }
+
+  .container {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  /* The gradient-clipped headings print as blank text without this. */
+  .section-title span {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: #14507a;
+  }
+
+  .hero-grid,
+  .expertise-grid,
+  .projects-grid,
+  .skills-grid {
+    display: block;
+  }
+
+  .expertise-card,
+  .project-card,
+  .skill-category-card,
+  .timeline-content,
+  .pub-card,
+  .hero-card {
+    border: 1px solid #cccccc;
+    box-shadow: none;
+    break-inside: avoid;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Two-column timeline collapses to a single readable column on paper. */
+  .timeline-wrapper::before,
+  .timeline-dot {
+    display: none;
+  }
+
+  .timeline-item:nth-child(odd) .timeline-content,
+  .timeline-item:nth-child(even) .timeline-content {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* A printed link is useless without its target. */
+  .footer-links-list a[href^="http"]::after,
+  .project-card a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+
+  a {
+    text-decoration: underline;
   }
 }

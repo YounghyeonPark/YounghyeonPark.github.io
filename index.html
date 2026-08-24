@@ -9,6 +9,21 @@
   <meta name="theme-color" content="#0b0f19">
   <link rel="canonical" href="https://younghyeonpark.github.io/">
 
+  <!-- GitHub Pages cannot set response headers, so the policy goes here.
+       script-src has no 'unsafe-inline': all handlers are bound in script.js.
+       style-src still needs it for the inline style attributes in this file.
+       NOTE: after deploying the leaderboard Worker, add its origin to
+       connect-src or the browser will block the score requests. -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    base-uri 'self';
+    img-src 'self' data: https://github.com https://avatars.githubusercontent.com;
+    script-src 'self';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+    font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+    connect-src 'self';
+    form-action 'none'">
+
   <!-- Icons -->
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
@@ -279,11 +294,13 @@
         <div class="hero-card">
           <div class="hero-avatar-wrapper">
             <div class="hero-avatar-inner">
-              <img src="https://github.com/YounghyeonPark.png" alt="Younghyeon Park" class="hero-avatar-img" onerror="this.onerror=null; this.src='https://avatars.githubusercontent.com/u/0?v=4';">
+              <img src="https://github.com/YounghyeonPark.png" alt="Younghyeon Park" class="hero-avatar-img"
+                   width="280" height="280" decoding="async"
+                   data-fallback-src="https://avatars.githubusercontent.com/u/0?v=4">
             </div>
           </div>
           <div class="hero-card-info">
-            <h3 class="hero-card-name">Younghyeon Park, Ph.D.</h3>
+            <h2 class="hero-card-name">Younghyeon Park, Ph.D.</h2>
             <p class="hero-card-sub">Director / Curi Bio, Co. Ltd.</p>
             
             <div class="hero-details-list">
@@ -656,7 +673,7 @@
             <p class="pub-venue">Sungkyunkwan University R&DB Foundation | US 2024/0273687 A1, KR 10-2735759 (2024)</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('B. Jeon, J. Lee, Y. Park, Method of deblurring motion in light field image and device therefor, US 2024/0273687 A1, KR 10-2735759.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="B. Jeon, J. Lee, Y. Park, Method of deblurring motion in light field image and device therefor, US 2024/0273687 A1, KR 10-2735759."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -669,7 +686,7 @@
             <p class="pub-venue">Quvit Bio, Inc. | US 12598400B2, KR 10-2764645 (2024)</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('W. Lee, Y. Park, LIGHT FIELD MICROSCOPY-BASED IMAGE ACQUISITION METHOD AND DEVICE, US 12598400B2, KR 10-2764645.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="W. Lee, Y. Park, LIGHT FIELD MICROSCOPY-BASED IMAGE ACQUISITION METHOD AND DEVICE, US 12598400B2, KR 10-2764645."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -682,7 +699,7 @@
             <p class="pub-venue">ACS Sensors, Vol. 7, No. 8, pp. 2188-2197, Aug. 2022</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('S. Kaushal et al., Culture-free quantification of bacteria using digital fluorescence imaging in a tunable magnetic capturing cartridge for onsite food testing, ACS Sensors, 2022.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="S. Kaushal et al., Culture-free quantification of bacteria using digital fluorescence imaging in a tunable magnetic capturing cartridge for onsite food testing, ACS Sensors, 2022."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -695,7 +712,7 @@
             <p class="pub-venue">MDPI Sensors, Vol. 20, No. 19, pp. 5578, Sep. 2020</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, An Acquisition Method for Visible and Near Infrared Images from Single CMYG Color Filter Array-based Sensor, MDPI Sensors, 2020.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="Y. Park, B. Jeon, An Acquisition Method for Visible and Near Infrared Images from Single CMYG Color Filter Array-based Sensor, MDPI Sensors, 2020."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -708,7 +725,7 @@
             <p class="pub-venue">Biosensors and Bioelectronics, Vol. 152, Jan. 2020</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('W.-I. Lee, Y. Park et al., A fully integrated bacterial pathogen detection system based on count-on-a-cartridge platform..., Biosensors and Bioelectronics, 2020.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="W.-I. Lee, Y. Park et al., A fully integrated bacterial pathogen detection system based on count-on-a-cartridge platform..., Biosensors and Bioelectronics, 2020."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -721,7 +738,7 @@
             <p class="pub-venue">Lab on a Chip, Vol. 19, No. 8, pp. 1502-1511, Mar. 2019</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('W.-I. Lee, Y. Park et al., A smartphone fluorescence imaging-based mobile biosensing system..., Lab on a Chip, 2019.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="W.-I. Lee, Y. Park et al., A smartphone fluorescence imaging-based mobile biosensing system..., Lab on a Chip, 2019."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -734,7 +751,7 @@
             <p class="pub-venue">IEEE International Conference on Electronics, Information, and Communication (ICEIC 2018), Hawaii</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, Visible and near-infrared separation using conditional generative adversarial network, ICEIC 2018.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="Y. Park, B. Jeon, Visible and near-infrared separation using conditional generative adversarial network, ICEIC 2018."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -747,7 +764,7 @@
             <p class="pub-venue">10th International Conference on Communications, Circuits and Systems (ICCCAS), Dec. 2018</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('Y. Park, B. Jeon, Spatially High Resolution Visible and Near-Infrared Separation using cGAN..., ICCCAS 2018.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="Y. Park, B. Jeon, Spatially High Resolution Visible and Near-Infrared Separation using cGAN..., ICCCAS 2018."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
 
@@ -760,7 +777,7 @@
             <p class="pub-venue">Samsung Electronics Co., Ltd. & SKKU | US 10027933 B2, KR 10-2287944</p>
           </div>
           <div class="pub-actions">
-            <button class="btn-copy-citation" onclick="copyCitation('K.-H. Won et al., Method and Apparatus for Outputting Images, US 10027933 B2.')"><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
+            <button class="btn-copy-citation" data-citation="K.-H. Won et al., Method and Apparatus for Outputting Images, US 10027933 B2."><i class="fas fa-quote-right" aria-hidden="true"></i> Copy</button>
           </div>
         </div>
       </div>
