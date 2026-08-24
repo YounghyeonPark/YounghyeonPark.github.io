@@ -32,32 +32,69 @@ document.addEventListener('DOMContentLoaded', () => {
     const icon = themeToggleBtn.querySelector('i');
     if (icon) {
       icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+      icon.setAttribute('aria-hidden', 'true');
     }
+    themeToggleBtn.setAttribute(
+      'aria-label',
+      theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
+    );
+  }
+
+  // 1b. Mobile Navigation Toggle
+  const navToggleBtn = document.getElementById('nav-toggle');
+  const navMenuEl = document.getElementById('nav-menu');
+
+  if (navToggleBtn && navMenuEl) {
+    const setNavOpen = (open) => {
+      navMenuEl.classList.toggle('is-open', open);
+      navToggleBtn.setAttribute('aria-expanded', String(open));
+      navToggleBtn.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+      const icon = navToggleBtn.querySelector('i');
+      if (icon) icon.className = open ? 'fas fa-xmark' : 'fas fa-bars';
+    };
+
+    navToggleBtn.addEventListener('click', () => {
+      setNavOpen(!navMenuEl.classList.contains('is-open'));
+    });
+
+    navMenuEl.addEventListener('click', (e) => {
+      if (e.target.closest('.nav-link')) setNavOpen(false);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMenuEl.classList.contains('is-open')) {
+        setNavOpen(false);
+        navToggleBtn.focus();
+      }
+    });
   }
 
   // 2. Navigation Active State on Scroll
-  const sections = document.querySelectorAll('section');
+  // The footer carries #contact, so match on the id rather than the tag name.
+  const navTargets = Array.from(document.querySelectorAll('section[id], footer[id]'));
   const navLinks = document.querySelectorAll('.nav-link');
 
-  window.addEventListener('scroll', () => {
-    let current = '';
-    const scrollPosition = window.scrollY + 200;
-
-    sections.forEach(section => {
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.offsetHeight;
-      if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-        current = section.getAttribute('id');
-      }
-    });
-
+  function setActiveNav(id) {
     navLinks.forEach(link => {
-      link.classList.remove('active');
-      if (link.getAttribute('href') === `#${current}`) {
-        link.classList.add('active');
-      }
+      link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
     });
-  });
+  }
+
+  if (navTargets.length && 'IntersectionObserver' in window) {
+    // An observer keeps this off the scroll thread; the old handler read
+    // offsetTop/offsetHeight for every section on every scroll event.
+    const inBand = new Set();
+    const navObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) inBand.add(entry.target.id);
+        else inBand.delete(entry.target.id);
+      });
+      const current = navTargets.find(target => inBand.has(target.id));
+      if (current) setActiveNav(current.id);
+    }, { rootMargin: '-80px 0px -65% 0px' });
+
+    navTargets.forEach(target => navObserver.observe(target));
+  }
 
   // 3. Publications & Patents Filtering & Search
   const filterBtns = document.querySelectorAll('.tab-btn');
@@ -67,10 +104,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeCategory = 'all';
   let searchQuery = '';
 
+  // Derive the tab counts from the cards actually present, so the labels cannot
+  // drift out of sync with the list the way the hardcoded ones had.
+  filterBtns.forEach(btn => {
+    const filter = btn.getAttribute('data-filter');
+    const name = btn.getAttribute('data-label') || btn.textContent.trim();
+    const count = filter === 'all'
+      ? pubCards.length
+      : document.querySelectorAll(`.pub-card[data-category="${filter}"]`).length;
+    btn.textContent = `${name} (${count})`;
+  });
+
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
+      filterBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       activeCategory = btn.getAttribute('data-filter');
       filterPublications();
     });
@@ -83,7 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const pubStatus = document.getElementById('pub-result-status');
+
   function filterPublications() {
+    let shown = 0;
     pubCards.forEach(card => {
       const category = card.getAttribute('data-category');
       const text = card.textContent.toLowerCase();
@@ -93,18 +148,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (matchesCategory && matchesSearch) {
         card.style.display = 'grid';
+        shown++;
       } else {
         card.style.display = 'none';
       }
     });
+
+    if (pubStatus) {
+      pubStatus.textContent = shown === 1
+        ? '1 publication matches the current filter.'
+        : `${shown} publications match the current filter.`;
+    }
   }
 
   // 4. Citation Copy to Clipboard
+  let toastTimerId = null;
+
+  function showToast(message, isError) {
+    let toast = document.getElementById('app-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'app-toast';
+      toast.className = 'app-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.toggle('is-error', !!isError);
+    // Restart the CSS transition even if a toast is already on screen.
+    toast.classList.remove('is-visible');
+    void toast.offsetWidth;
+    toast.classList.add('is-visible');
+
+    if (toastTimerId) clearTimeout(toastTimerId);
+    toastTimerId = setTimeout(() => {
+      toastTimerId = null;
+      toast.classList.remove('is-visible');
+    }, 2600);
+  }
+
   window.copyCitation = function(text) {
+    if (!navigator.clipboard) {
+      showToast('Clipboard unavailable in this browser.', true);
+      return;
+    }
     navigator.clipboard.writeText(text).then(() => {
-      alert('Citation copied to clipboard!\n\n' + text);
+      showToast('Citation copied to clipboard.');
     }).catch(err => {
       console.error('Failed to copy: ', err);
+      showToast('Could not copy the citation.', true);
     });
   };
 
@@ -116,8 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const startBtn = document.getElementById('game-start-btn');
   const statusTitle = document.getElementById('game-status-title');
   const statusSub = document.getElementById('game-status-sub');
-  const tabRunner = document.getElementById('tab-runner');
-  const tabSkyroads = document.getElementById('tab-skyroads');
   const gameHintText = document.getElementById('game-hint-text');
 
   let activeGameMode = 'runner'; // 'runner' or 'skyroads'
@@ -160,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let runnerRunning = false;
     let runnerOver = false;
     let runnerScore = 0;
+    let runnerScoreAccum = 0;
     let runnerHighScore = parseInt(localStorage.getItem('photon_high_score') || '0', 10);
     let runnerAnimId = null;
 
@@ -180,6 +272,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let runnerObstacles = [];
     let runnerFrameCount = 0;
+
+    // Quantum Tunneling Bonus State
+    let tunnelingCharges = 0;
+    let nextTunnelingScore = 10000;
+    let tunnelingNotifyTimer = 0;
+    let tunnelingEffectTimer = 0;
+    let tunnelingEffectPos = { x: 0, y: 0 };
 
     function drawRoundedRect(ctx, x, y, w, h, r) {
       if (w < 2 * r) r = w / 2;
@@ -202,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
       runnerRunning = true;
       runnerOver = false;
       runnerScore = 0;
+      runnerScoreAccum = 0;
       runnerBaseSpeed = 5.0;
       runnerFrameCount = 0;
       nextRunnerSpawnFrame = 0;
@@ -299,13 +399,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRunner(dt = 1.0) {
-      runnerFrameCount++;
+      runnerFrameCount += dt;
+
+      if (tunnelingNotifyTimer > 0) tunnelingNotifyTimer -= dt;
+      if (tunnelingEffectTimer > 0) tunnelingEffectTimer -= dt;
 
       // Relaxed comfortable speed across all window sizes & resolutions:
       runnerSpeed = (runnerBaseSpeed + (runnerScore / 3000)) * dt;
 
-      // Realistic distance score accumulation rate
-      runnerScore += Math.max(1, Math.floor((runnerBaseSpeed + (runnerScore / 1500)) / 6 * dt));
+      // Accumulate as a float: rounding up to >=1 per frame made the score climb
+      // 2.4x faster on a 144 Hz display than on a 60 Hz one.
+      runnerScoreAccum += Math.max(0.5, (runnerBaseSpeed + (runnerScore / 1500)) / 6) * dt;
+      runnerScore = Math.floor(runnerScoreAccum);
       if (runnerScore > runnerHighScore) {
         runnerHighScore = runnerScore;
         localStorage.setItem('photon_high_score', runnerHighScore);
@@ -472,17 +577,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
+      // Quantum Tunneling Burst FX (fired when a charge is spent on an obstacle)
+      if (tunnelingEffectTimer > 0) {
+        ctx.beginPath();
+        ctx.arc(tunnelingEffectPos.x, tunnelingEffectPos.y, (40 - tunnelingEffectTimer) * 2.2, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(168, 85, 247, ${Math.max(0, tunnelingEffectTimer / 40)})`;
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#c084fc';
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
       ctx.font = '12px "Fira Code", monospace';
       ctx.fillStyle = '#9ca3af';
       ctx.fillText(`Distance: ${runnerScore} µm`, 16, 22);
       ctx.fillText(`High: ${runnerHighScore} µm`, canvas.width - 120, 22);
-    }
 
-    function drawRunnerStatic() { drawRunner(); }
+      // Tunneling Charge Badge HUD
+      if (tunnelingCharges > 0) {
+        ctx.fillStyle = '#c084fc';
+        ctx.font = 'bold 11px "Fira Code", monospace';
+        ctx.fillText(`Quantum Tunneling: ${'⚛'.repeat(Math.min(5, tunnelingCharges))} (${tunnelingCharges})`, 16, 40);
+      }
+
+      // Unlock Notification Banner
+      if (tunnelingNotifyTimer > 0) {
+        ctx.fillStyle = '#c084fc';
+        ctx.font = 'bold 13px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚛ QUANTUM TUNNELING UNLOCKED! (+1 Pass-Through)', canvas.width / 2, 58);
+        ctx.textAlign = 'left';
+      }
+    }
 
     function loopRunner() {
       if (!runnerRunning || activeGameMode !== 'runner') return;
-      updateRunner();
+      const dt = getDeltaTime();
+      updateRunner(dt);
       drawRunner();
       runnerAnimId = requestAnimationFrame(loopRunner);
     }
@@ -502,6 +634,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let gateSpeed = 6.5;
     let gates = []; // Active 3D Wall Gates
     let gateSpawnTimer = 0;
+
+    // Re-rolled once per spawn. Rolling it every frame biased spacing to the minimum.
+    function randomGateInterval() {
+      return 420 + Math.floor(Math.random() * 320);
+    }
+    let nextGateInterval = randomGateInterval();
 
     // Quantum Superposition Wave Bonus State
     let superpositionCharges = 0;
@@ -554,6 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playerX3D = 0;
       gates = [];
       gateSpawnTimer = 0;
+      nextGateInterval = randomGateInterval();
       superpositionCharges = 0;
       waveNotifyTimer = 0;
       waveExplosionTimer = 0;
@@ -597,6 +736,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRoads(dt = 1.0) {
+      if (waveNotifyTimer > 0) waveNotifyTimer -= dt;
+      if (waveExplosionTimer > 0) waveExplosionTimer -= dt;
+
       // Relaxed initial start (4.0) with progressive speed acceleration (0.12)
       gateSpeed = (4.0 + Math.min(12.0, (clearedGateCount * 0.12))) * dt;
 
@@ -611,9 +753,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Spawn new gates with dynamic random distance intervals (420 - 740 Z)
       gateSpawnTimer += gateSpeed;
-      const randomGateInterval = 420 + Math.floor(Math.random() * 320);
-      if (gateSpawnTimer > randomGateInterval) {
+      if (gateSpawnTimer > nextGateInterval) {
         gateSpawnTimer = 0;
+        nextGateInterval = randomGateInterval();
         spawnGate();
       }
 
@@ -868,7 +1010,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Quantum Wave Vaporizer Explosion FX
       if (waveExplosionTimer > 0) {
-        waveExplosionTimer--;
         ctx.beginPath();
         ctx.arc(px, py, (45 - waveExplosionTimer) * 7.5, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(56, 189, 248, ${waveExplosionTimer / 45})`;
@@ -878,7 +1019,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.stroke();
         ctx.shadowBlur = 0;
 
-        ctx.font = 'bold 13px var(--font-heading)';
+        ctx.font = 'bold 13px Outfit, sans-serif';
         ctx.fillStyle = '#38bdf8';
         ctx.fillText('🌊 WALL VAPORIZED BY QUANTUM WAVE!', px - 110, py - 35);
       }
@@ -898,16 +1039,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Notification Banner
       if (waveNotifyTimer > 0) {
-        waveNotifyTimer--;
         ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 13px var(--font-heading)';
+        ctx.font = 'bold 13px Outfit, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('🌊 QUANTUM SUPERPOSITION WAVE UNLOCKED! (+1 Wall Vaporizer)', canvas.width / 2, 40);
         ctx.textAlign = 'left';
       }
     }
-
-    function drawRoadsStatic() { drawRoads(); }
 
     function loopRoads() {
       if (!roadsRunning || activeGameMode !== 'skyroads') return;
@@ -1040,7 +1178,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSchrodinger(dt = 1.0) {
-      schrodingerFrameCount++;
+      schrodingerFrameCount += dt;
+      if (statePulseTimer > 0) statePulseTimer -= dt;
       schrodingerSpeed = (4.5 + Math.min(6.0, schrodingerScore / 2500)) * dt;
 
       // Jump Physics
@@ -1173,7 +1312,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const py = schrodingerPlayer.y;
 
       if (statePulseTimer > 0) {
-        statePulseTimer--;
         ctx.beginPath();
         ctx.arc(px, py, schrodingerPlayer.radius + (30 - statePulseTimer) * 1.5, 0, Math.PI * 2);
         ctx.strokeStyle = isObservedState ? `rgba(56, 189, 248, ${statePulseTimer / 30})` : `rgba(192, 132, 252, ${statePulseTimer / 30})`;
@@ -1294,8 +1432,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    function drawSchrodingerStatic() { drawSchrodinger(); }
-
     function loopSchrodinger() {
       if (!schrodingerRunning || activeGameMode !== 'schrodinger') return;
       const dt = getDeltaTime();
@@ -1316,10 +1452,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectRunnerBtn && selectSkyroadsBtn) {
       selectRunnerBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (tabRunner && tabSkyroads) {
-          tabRunner.classList.add('active');
-          tabSkyroads.classList.remove('active');
-        }
         activeGameMode = 'runner';
         gameHintText.innerHTML = 'Controls: Press <strong>Space</strong> or <strong>Tap</strong> to Jump';
         startRunnerGame();
@@ -1339,32 +1471,6 @@ document.addEventListener('DOMContentLoaded', () => {
         activeGameMode = 'schrodinger';
         gameHintText.innerHTML = 'Controls: Press <strong>Space</strong> or <strong>Tap Screen</strong> to Toggle State [Box 🔒 ↔ Cat 🐱]';
         startSchrodingerGame();
-      });
-    }
-
-    if (tabRunner && tabSkyroads) {
-      tabRunner.addEventListener('click', () => {
-        tabRunner.classList.add('active');
-        tabSkyroads.classList.remove('active');
-        activeGameMode = 'runner';
-        gameHintText.innerHTML = 'Controls: Press <strong>Space</strong> or <strong>Tap</strong> to Jump';
-        statusTitle.textContent = 'Photon Runner 🔬';
-        statusSub.innerHTML = 'Jump over optical lenses & sensor noise spikes!';
-        if (gameModeCards) gameModeCards.style.display = 'flex';
-        resizeRunnerCanvas();
-        overlay.classList.remove('hidden');
-      });
-
-      tabSkyroads.addEventListener('click', () => {
-        tabSkyroads.classList.add('active');
-        tabRunner.classList.remove('active');
-        activeGameMode = 'skyroads';
-        gameHintText.innerHTML = 'Controls: <strong>←/→</strong> or <strong>Swipe</strong> to Switch Lane | <strong>Space</strong> to Jump';
-        statusTitle.textContent = 'Slot Roads (3D) 🚀';
-        statusSub.innerHTML = '3D SkyRoads-style space track runner! Jump gaps & dodge lasers!';
-        if (gameModeCards) gameModeCards.style.display = 'flex';
-        resizeRunnerCanvas();
-        overlay.classList.remove('hidden');
       });
     }
 
@@ -1687,9 +1793,12 @@ document.addEventListener('DOMContentLoaded', () => {
       openLeaderboardModal(gameName);
     }
 
+    let leaderboardReturnFocus = null;
+
     function openLeaderboardModal(specificGame = null) {
       const modal = document.getElementById('leaderboard-modal');
       if (modal) {
+        leaderboardReturnFocus = document.activeElement;
         if (specificGame && LEADERBOARDS[specificGame]) {
           activeLeaderboardGame = specificGame;
         } else if (activeGameMode === 'runner') {
@@ -1701,6 +1810,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         modal.classList.remove('hidden');
         fetchOnlineGameLeaderboard(activeLeaderboardGame);
+        const closeBtn = document.getElementById('close-leaderboard');
+        if (closeBtn) closeBtn.focus();
       }
     }
 
@@ -1708,6 +1819,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const modal = document.getElementById('leaderboard-modal');
       if (modal) {
         modal.classList.add('hidden');
+        if (leaderboardReturnFocus && typeof leaderboardReturnFocus.focus === 'function') {
+          leaderboardReturnFocus.focus();
+        }
+        leaderboardReturnFocus = null;
       }
     }
 
@@ -1752,10 +1867,31 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
     document.addEventListener('keydown', (e) => {
       const modal = document.getElementById('leaderboard-modal');
-      if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      if (!modal || modal.classList.contains('hidden')) return;
+
+      if (e.key === 'Escape') {
         closeLeaderboardModal();
+        return;
+      }
+
+      // Keep Tab inside the dialog while it is open.
+      if (e.key !== 'Tab') return;
+      const focusables = Array.from(modal.querySelectorAll(FOCUSABLE))
+        .filter(el => !el.disabled && el.offsetParent !== null);
+      if (!focusables.length) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
       }
     });
 

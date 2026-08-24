@@ -5,14 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Younghyeon Park, Ph.D. | Computational Imaging Engineer & System Architect</title>
   <meta name="description" content="Portfolio and curriculum vitae of Dr. Younghyeon Park - Director at Curi Bio, specializing in Computational Photography, Light-Field Microscopy, and Hardware-Software System Design.">
-  
+  <meta name="author" content="Younghyeon Park">
+  <meta name="theme-color" content="#0b0f19">
+  <link rel="canonical" href="https://younghyeonpark.github.io/">
+
+  <!-- Icons -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+
+  <!-- Open Graph / Twitter link previews -->
+  <meta property="og:type" content="profile">
+  <meta property="og:site_name" content="Younghyeon Park, Ph.D.">
+  <meta property="og:url" content="https://younghyeonpark.github.io/">
+  <meta property="og:title" content="Younghyeon Park, Ph.D. | Computational Imaging Engineer &amp; System Architect">
+  <meta property="og:description" content="Director at Curi Bio. Bridging hardware, optics, software, AI, and signal processing for next-generation computational imaging.">
+  <meta property="og:image" content="https://github.com/YounghyeonPark.png">
+  <meta property="og:image:alt" content="Portrait of Younghyeon Park">
+  <meta property="og:locale" content="en_US">
+  <meta property="profile:first_name" content="Younghyeon">
+  <meta property="profile:last_name" content="Park">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Younghyeon Park, Ph.D. | Computational Imaging Engineer &amp; System Architect">
+  <meta name="twitter:description" content="Director at Curi Bio. Bridging hardware, optics, software, AI, and signal processing for next-generation computational imaging.">
+  <meta name="twitter:image" content="https://github.com/YounghyeonPark.png">
+
+  <!-- Google Fonts: linked here rather than @import-ed from the stylesheet, which
+       serialised the font request behind the CSS parse. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&amp;family=Inter:wght@300;400;500;600;700&amp;family=Outfit:wght@400;500;600;700;800&amp;display=swap">
+
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="styles.css">
-  
-  <!-- FontAwesome Icons & Google Fonts -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- FontAwesome Icons (SRI hash computed from the pinned 6.4.0 build) -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Younghyeon Park",
+    "honorificSuffix": "Ph.D.",
+    "url": "https://younghyeonpark.github.io/",
+    "image": "https://github.com/YounghyeonPark.png",
+    "jobTitle": "Director",
+    "email": "mailto:ypark@curibio.com",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Curi Bio, Co. Ltd."
+    },
+    "alumniOf": {
+      "@type": "CollegeOrUniversity",
+      "name": "Sungkyunkwan University"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Pangyo-ro 242, Bundang-gu",
+      "addressLocality": "Seongnam-si",
+      "addressCountry": "KR"
+    },
+    "sameAs": [
+      "https://github.com/YounghyeonPark",
+      "https://orcid.org/0000-0002-4733-5049"
+    ],
+    "knowsAbout": [
+      "Computational Imaging",
+      "Light-Field Microscopy",
+      "Fourier Optics",
+      "Multispectral Imaging",
+      "PCB Design",
+      "Embedded Systems",
+      "Deep Learning",
+      "Video Coding"
+    ]
+  }
+  </script>
 </head>
 <body>
+
+  <a href="#about" class="skip-link">Skip to main content</a>
 
   <!-- Navigation Bar -->
   <nav class="navbar">
@@ -22,7 +98,7 @@
         Younghyeon Park
       </a>
 
-      <ul class="nav-menu">
+      <ul class="nav-menu" id="nav-menu">
         <li><a href="#about" class="nav-link active">About</a></li>
         <li><a href="#expertise" class="nav-link">Expertise</a></li>
         <li><a href="#experience" class="nav-link">Experience</a></li>
@@ -32,8 +108,12 @@
       </ul>
 
       <div class="nav-actions">
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Theme">
-          <i class="fas fa-sun"></i>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Switch to light theme">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+        <button id="nav-toggle" class="nav-toggle" aria-label="Open navigation menu"
+                aria-expanded="false" aria-controls="nav-menu">
+          <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
         <a href="assets/pdf/Curriculum_Vitae_Younghyeon_Park.pdf" download class="btn btn-primary">
           <i class="fas fa-file-pdf"></i> CV PDF
@@ -55,7 +135,10 @@
             </div>
             <span id="game-hint-text" class="game-hint">Controls: Press <strong>Space / Tap</strong> to Play</span>
           </div>
-          <canvas id="hero-game-canvas"></canvas>
+          <canvas id="hero-game-canvas" role="img"
+                  aria-label="YP Arcade Hub mini-game. Optional; every part of this portfolio is available without playing it.">
+            The arcade mini-games need canvas support. They are optional &mdash; all portfolio content is available below.
+          </canvas>
           
           <div class="game-overlay" id="game-overlay">
             <div class="game-overlay-content">
@@ -106,11 +189,12 @@
           </div>
 
           <!-- Global Leaderboard Modal (Fixed Fullscreen Overlay) -->
-          <div id="leaderboard-modal" class="global-leaderboard-modal hidden">
+          <div id="leaderboard-modal" class="global-leaderboard-modal hidden"
+               role="dialog" aria-modal="true" aria-labelledby="leaderboard-modal-title">
             <div class="leaderboard-modal-card">
               <div class="leaderboard-modal-header">
-                <div class="leaderboard-title">
-                  <i class="fas fa-trophy" style="color: #f59e0b;"></i> Global Hall of Fame
+                <div class="leaderboard-title" id="leaderboard-modal-title">
+                  <i class="fas fa-trophy" style="color: #f59e0b;" aria-hidden="true"></i> Global Hall of Fame
                 </div>
                 <button id="close-leaderboard" class="leaderboard-close-btn" aria-label="Close">&times;</button>
               </div>
@@ -535,22 +619,30 @@
     <div class="container">
       <div class="section-header">
         <span class="section-subtitle">Academic & IP Track Record</span>
-        <h2 class="section-title">Publications & <span>Patents</span></h2>
+        <h2 class="section-title">Selected Publications & <span>Patents</span></h2>
+        <p class="section-note">
+          A selection from 18+ journal &amp; conference papers and 9 registered patents.
+          Full record in the <a href="assets/pdf/Curriculum_Vitae_Younghyeon_Park.pdf" download>CV (PDF)</a>
+          &middot; <a href="works.bib" download>BibTeX</a>
+        </p>
       </div>
 
       <div class="pub-controls">
-        <div class="filter-tabs">
-          <button class="tab-btn active" data-filter="all">All (27)</button>
-          <button class="tab-btn" data-filter="journal">Journals (9)</button>
-          <button class="tab-btn" data-filter="conference">Conferences (9)</button>
-          <button class="tab-btn" data-filter="patent">Patents (9)</button>
+        <div class="filter-tabs" role="group" aria-label="Filter publications by type">
+          <button class="tab-btn active" data-filter="all" data-label="All" aria-pressed="true">All</button>
+          <button class="tab-btn" data-filter="journal" data-label="Journals" aria-pressed="false">Journals</button>
+          <button class="tab-btn" data-filter="conference" data-label="Conferences" aria-pressed="false">Conferences</button>
+          <button class="tab-btn" data-filter="patent" data-label="Patents" aria-pressed="false">Patents</button>
         </div>
 
         <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
-          <input type="text" id="pub-search" class="search-input" placeholder="Search by title, author, year...">
+          <label for="pub-search" class="sr-only">Search publications</label>
+          <i class="fas fa-search search-icon" aria-hidden="true"></i>
+          <input type="search" id="pub-search" class="search-input" placeholder="Search by title, author, year...">
         </div>
       </div>
+
+      <p id="pub-result-status" class="sr-only" role="status" aria-live="polite"></p>
 
       <div class="pub-list">
         <!-- Patent 1 -->
