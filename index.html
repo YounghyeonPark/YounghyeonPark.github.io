@@ -148,7 +148,7 @@
           <div class="game-header">
             <div class="game-header-top">
               <span class="game-title"><i class="fas fa-gamepad" aria-hidden="true"></i> YP Arcade Hub</span>
-              <button id="leaderboard-toggle-btn" class="leaderboard-toggle-btn"><i class="fas fa-trophy" aria-hidden="true"></i> Leaderboard</button>
+              <button id="leaderboard-toggle-btn" class="leaderboard-toggle-btn"><i class="fas fa-trophy" aria-hidden="true"></i> Best Scores</button>
             </div>
             <span id="game-hint-text" class="game-hint">Controls: Press <strong>Space / Tap</strong> to Play</span>
           </div>
@@ -163,7 +163,7 @@
               <div id="game-status-sub">Select a game mode to start playing!</div>
 
               <div style="margin: 0.4rem 0 0.8rem 0;">
-                <button class="leaderboard-toggle-btn leaderboard-overlay-btn" style="font-size: 0.8rem; padding: 0.35rem 0.8rem;"><i class="fas fa-trophy" aria-hidden="true"></i> Hall of Fame / Leaderboard</button>
+                <button class="leaderboard-toggle-btn leaderboard-overlay-btn" style="font-size: 0.8rem; padding: 0.35rem 0.8rem;"><i class="fas fa-trophy" aria-hidden="true"></i> Your Best Scores</button>
               </div>
               
               <div id="score-submit-box" class="score-submit-box" style="display: none;">
@@ -205,13 +205,14 @@
             </div>
           </div>
 
-          <!-- Global Leaderboard Modal (Fixed Fullscreen Overlay) -->
+          <!-- Best-scores modal. Scores are per-browser; see leaderboard-worker/
+               for the shared-board design that is written but not deployed. -->
           <div id="leaderboard-modal" class="global-leaderboard-modal hidden"
                role="dialog" aria-modal="true" aria-labelledby="leaderboard-modal-title">
             <div class="leaderboard-modal-card">
               <div class="leaderboard-modal-header">
                 <div class="leaderboard-title" id="leaderboard-modal-title">
-                  <i class="fas fa-trophy" style="color: #f59e0b;" aria-hidden="true"></i> Global Hall of Fame
+                  <i class="fas fa-trophy" style="color: #f59e0b;" aria-hidden="true"></i> Your Best Scores
                 </div>
                 <button id="close-leaderboard" class="leaderboard-close-btn" aria-label="Close">&times;</button>
               </div>
@@ -224,13 +225,17 @@
               </div>
               
               <div class="leaderboard-modal-body">
+                <p class="leaderboard-modal-note">
+                  <i class="fas fa-circle-info" aria-hidden="true"></i>
+                  Saved in this browser only &mdash; nothing is uploaded, and clearing site data resets it.
+                </p>
                 <div id="leaderboard-list" class="leaderboard-list">
                   <!-- Dynamically populated -->
                 </div>
               </div>
 
               <div class="leaderboard-modal-footer">
-                <button id="close-leaderboard-bottom-btn" class="btn btn-outline" style="width: 100%;"><i class="fas fa-times" aria-hidden="true"></i> Close Leaderboard</button>
+                <button id="close-leaderboard-bottom-btn" class="btn btn-outline" style="width: 100%;"><i class="fas fa-times" aria-hidden="true"></i> Close</button>
               </div>
             </div>
           </div>

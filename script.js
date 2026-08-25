@@ -1685,10 +1685,11 @@ document.addEventListener('DOMContentLoaded', () => {
         slug: 'runner',
         badgeColor: 'var(--gradient-accent)',
         icon: '🔬',
+        // Not real scores: targets to beat, shown until the player sets their own.
         defaults: [
-          { name: 'Dr. Park 🔬', score: 300, date: '2026-08-12' },
-          { name: 'OpticsDev', score: 180, date: '2026-08-12' },
-          { name: 'PhotonRider', score: 90, date: '2026-08-12' }
+          { name: 'Dr. Park 🔬', score: 300, date: '2026-08-12', target: true },
+          { name: 'OpticsDev', score: 180, date: '2026-08-12', target: true },
+          { name: 'PhotonRider', score: 90, date: '2026-08-12', target: true }
         ]
       },
       'Slot Gate 3D': {
@@ -1696,10 +1697,11 @@ document.addEventListener('DOMContentLoaded', () => {
         slug: 'slotgate',
         badgeColor: 'var(--gradient-purple)',
         icon: '🚀',
+        // Not real scores: targets to beat, shown until the player sets their own.
         defaults: [
-          { name: 'Dr. Park 🔬', score: 400, date: '2026-08-12' },
-          { name: 'SpaceNavigator', score: 300, date: '2026-08-12' },
-          { name: 'LaserPilot', score: 200, date: '2026-08-12' }
+          { name: 'Dr. Park 🔬', score: 400, date: '2026-08-12', target: true },
+          { name: 'SpaceNavigator', score: 300, date: '2026-08-12', target: true },
+          { name: 'LaserPilot', score: 200, date: '2026-08-12', target: true }
         ]
       },
       'Schrödinger Cat': {
@@ -1707,10 +1709,11 @@ document.addEventListener('DOMContentLoaded', () => {
         slug: 'schrodinger',
         badgeColor: 'rgba(168, 85, 247, 0.4)',
         icon: '🐱',
+        // Not real scores: targets to beat, shown until the player sets their own.
         defaults: [
-          { name: 'QuantumCat 🐱', score: 2000, date: '2026-08-12' },
-          { name: 'Ψ-WaveObserver', score: 1500, date: '2026-08-12' },
-          { name: 'BoxTunnelMaster', score: 1000, date: '2026-08-12' }
+          { name: 'QuantumCat 🐱', score: 2000, date: '2026-08-12', target: true },
+          { name: 'Ψ-WaveObserver', score: 1500, date: '2026-08-12', target: true },
+          { name: 'BoxTunnelMaster', score: 1000, date: '2026-08-12', target: true }
         ]
       }
     };
@@ -1730,7 +1733,8 @@ document.addEventListener('DOMContentLoaded', () => {
         clean.push({
           name: name || 'Anonymous',
           score: Math.floor(score),
-          date: /^\d{4}-\d{2}-\d{2}$/.test(row.date) ? row.date : ''
+          date: /^\d{4}-\d{2}-\d{2}$/.test(row.date) ? row.date : '',
+          target: row.target === true
         });
       });
       return clean.slice(0, 50);
@@ -1776,7 +1780,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!data || data.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'leaderboard-empty';
-        empty.textContent = `No scores recorded for ${gameName} yet. Play to be the first!`;
+        empty.textContent = `No scores for ${gameName} in this browser yet. Play a round to set one.`;
         listContainer.appendChild(empty);
         return;
       }
@@ -1807,9 +1811,16 @@ document.addEventListener('DOMContentLoaded', () => {
         nameEl.textContent = item.name;
 
         const badgeEl = document.createElement('span');
-        badgeEl.className = 'card-badge leaderboard-game-badge';
-        badgeEl.style.background = cfg.badgeColor;
-        badgeEl.textContent = `${cfg.icon} ${gameName}`;
+        if (item.target) {
+          // Seeded row: say plainly that it is a target, not somebody's score.
+          badgeEl.className = 'card-badge leaderboard-target-badge';
+          badgeEl.textContent = 'target';
+          itemDiv.classList.add('is-target');
+        } else {
+          badgeEl.className = 'card-badge leaderboard-game-badge';
+          badgeEl.style.background = cfg.badgeColor;
+          badgeEl.textContent = `${cfg.icon} ${gameName}`;
+        }
 
         player.appendChild(rankEl);
         player.appendChild(nameEl);

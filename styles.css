@@ -852,6 +852,41 @@ section {
   overflow-wrap: anywhere;
 }
 
+.leaderboard-modal-note {
+  margin-bottom: 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.leaderboard-modal-note i {
+  color: var(--accent-cyan);
+  margin-top: 0.15rem;
+}
+
+/* Seeded rows are targets to beat, not scores anyone set. */
+.leaderboard-item.is-target {
+  opacity: 0.78;
+  border-style: dashed;
+}
+
+.leaderboard-target-badge {
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 12px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px dashed var(--border-color);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .leaderboard-game-badge {
   font-size: 0.65rem;
   padding: 0.1rem 0.4rem;
